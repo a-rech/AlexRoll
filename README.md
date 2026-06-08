@@ -2,7 +2,7 @@
 
 > PWA de jeux de cartes et de dés pour jouer entre amis, directement depuis le téléphone.
 
-🔗 **[alexroll.io → https://a-rech.github.io/AlexRoll](https://a-rech.github.io/AlexRoll)**
+🔗 **[AlexRoll.io → https://a-rech.github.io/AlexRoll](https://a-rech.github.io/AlexRoll)**
 
 ---
 
