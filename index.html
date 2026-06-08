@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0f0f14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Soirée Jeux</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── Variables & Thèmes ─────────────────────────────────────────── */
+:root {
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --transition: .22s cubic-bezier(.4,0,.2,1);
+
+  /* Thème par défaut : Nuit (sombre) */
+  --bg:        #0f0f14;
+  --bg2:       #18181f;
+  --bg3:       #22222c;
+  --surface:   #2a2a36;
+  --border:    rgba(255,255,255,.08);
+  --border2:   rgba(255,255,255,.16);
+  --text:      #e8e8f0;
+  --text2:     #9090a8;
+  --text3:     #5a5a72;
+  --accent:    #e8c560;
+  --accent2:   #c8a840;
+  --accent-bg: rgba(232,197,96,.12);
+  --red:       #e05555;
+  --green:     #4caf7d;
+  --shadow:    0 8px 32px rgba(0,0,0,.5);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.3);
+  --glow:      0 0 20px rgba(232,197,96,.15);
+}
+[data-mode="light"] {
+  --bg:        #f5f0e8;
+  --bg2:       #ede7d9;
+  --bg3:       #e4dccf;
+  --surface:   #fff;
+  --border:    rgba(0,0,0,.08);
+  --border2:   rgba(0,0,0,.16);
+  --text:      #1a1a24;
+  --text2:     #5a5a72;
+  --text3:     #9090a8;
+  --accent:    #c09020;
+  --accent2:   #a07810;
+  --accent-bg: rgba(192,144,32,.1);
+  --shadow:    0 8px 32px rgba(0,0,0,.12);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.06);
+  --glow:      none;
+}
+/* Thèmes couleurs */
+[data-theme="or"]    { --accent:#e8c560; --accent2:#c8a840; --accent-bg:rgba(232,197,96,.12); }
+[data-theme="jade"]  { --accent:#4ecdc4; --accent2:#38b2aa; --accent-bg:rgba(78,205,196,.12); }
+[data-theme="rubis"] { --accent:#e05580; --accent2:#c0356a; --accent-bg:rgba(224,85,128,.12); }
+[data-theme="indigo"]{ --accent:#7c6cf0; --accent2:#6055d0; --accent-bg:rgba(124,108,240,.12); }
+[data-theme="feu"]   { --accent:#e87840; --accent2:#d06020; --accent-bg:rgba(232,120,64,.12); }
+
+/* ─── Reset & Base ───────────────────────────────────────────────── */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  transition: background var(--transition), color var(--transition);
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+a { color: inherit; text-decoration: none; }
+h1,h2,h3,h4 { font-family: var(--font-display); font-weight: 700; }
+
+/* ─── Bruit de fond (texture subtile) ───────────────────────────── */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:0;
+  opacity:.6;
+}
+
+/* ─── App shell ──────────────────────────────────────────────────── */
+#app { position:relative; z-index:1; min-height:100dvh; display:flex; flex-direction:column; }
+
+/* ─── Header ─────────────────────────────────────────────────────── */
+#header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: sticky; top:0; z-index:100;
+}
+#header-logo {
+  font-family: var(--font-display);
+  font-size: 1.35rem; font-weight:900;
+  color: var(--accent);
+  letter-spacing: -.02em;
+  cursor: pointer;
+  display:flex; align-items:center; gap:.5rem;
+}
+#header-logo span { font-size:1.5rem; }
+#header-actions { display:flex; align-items:center; gap:.5rem; }
+.icon-btn {
+  width:38px; height:38px; border-radius:var(--radius-sm);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--text2); background:var(--bg3); border:1px solid var(--border);
+  font-size:1.1rem; transition: all var(--transition);
+}
+.icon-btn:hover { color:var(--accent); border-color:var(--accent); background:var(--accent-bg); }
+#btn-back {
+  display:none; align-items:center; gap:.4rem;
+  padding:.4rem .8rem; border-radius:var(--radius-sm);
+  background:var(--bg3); border:1px solid var(--border);
+  color:var(--text2); font-size:.85rem; transition:all var(--transition);
+}
+#btn-back:hover { color:var(--text); border-color:var(--border2); }
+#btn-back.visible { display:flex; }
+
+/* ─── Pages ──────────────────────────────────────────────────────── */
+.page { display:none; flex:1; }
+.page.active { display:flex; flex-direction:column; }
+
+/* ─── Page Catalogue ─────────────────────────────────────────────── */
+#page-catalogue { padding:1.5rem 1.25rem 2rem; gap:1.5rem; }
+.catalogue-hero {
+  text-align:center; padding:1rem 0 .5rem;
+}
+.catalogue-hero h2 {
+  font-size:clamp(1.6rem,5vw,2.4rem); font-weight:900;
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+  line-height:1.1; margin-bottom:.5rem;
+}
+.catalogue-hero p { color:var(--text2); font-size:.9rem; }
+.catalogue-filters {
+  display:flex; gap:.5rem; flex-wrap:wrap; justify-content:center;
+}
+.filter-btn {
+  padding:.4rem .9rem; border-radius:99px;
+  border:1px solid var(--border); background:var(--bg3);
+  color:var(--text2); font-size:.82rem; transition:all var(--transition);
+}
+.filter-btn.active, .filter-btn:hover {
+  background:var(--accent-bg); border-color:var(--accent); color:var(--accent);
+}
+.games-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap:1rem;
+}
+.game-card {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:var(--radius); padding:1.25rem;
+  cursor:pointer; transition:all var(--transition);
+  position:relative; overflow:hidden;
+}
+.game-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:var(--accent); transform:scaleX(0); transform-origin:left;
+  transition:transform var(--transition);
+}
+.game-card:hover { border-color:var(--border2); transform:translateY(-2px); box-shadow:var(--shadow); }
+.game-card:hover::before { transform:scaleX(1); }
+.game-card-emoji { font-size:2.2rem; margin-bottom:.75rem; display:block; }
+.game-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:.5rem; margin-bottom:.5rem; }
+.game-card-title { font-family:var(--font-display); font-size:1.2rem; font-weight:700; }
+.game-card-badge {
+  font-size:.7rem; padding:.2rem .55rem; border-radius:99px;
+  background:var(--accent-bg); color:var(--accent); border:1px solid var(--accent);
+  white-space:nowrap; flex-shrink:0; font-weight:500;
+}
+.game-card-desc { color:var(--text2); font-size:.85rem; line-height:1.5; margin-bottom:.9rem; }
+.game-card-meta { display:flex; gap:.75rem; font-size:.78rem; color:var(--text3); }
+.game-card-meta span { display:flex; align-items:center; gap:.25rem; }
+.game-card-cta {
+  margin-top:1rem; padding:.6rem 1rem; border-radius:var(--radius-sm);
+  background:var(--accent-bg); color:var(--accent); border:1px solid var(--accent);
+  font-size:.82rem; font-weight:500; width:100%;
+  transition:all var(--transition);
+}
+.game-card-cta:hover { background:var(--accent); color:var(--bg); }
+
+/* ─── Page Fiche jeu ─────────────────────────────────────────────── */
+#page-fiche { overflow-y:auto; }
+.fiche-container { max-width:760px; margin:0 auto; padding:1.5rem 1.25rem 3rem; }
+.fiche-header { margin-bottom:1.5rem; }
+.fiche-emoji { font-size:3rem; margin-bottom:.75rem; display:block; }
+.fiche-title { font-size:clamp(1.8rem,6vw,2.6rem); font-weight:900; margin-bottom:.4rem; }
+.fiche-desc { color:var(--text2); font-size:.95rem; margin-bottom:1rem; }
+.fiche-meta { display:flex; flex-wrap:wrap; gap:.5rem; }
+.fiche-tag {
+  padding:.3rem .7rem; border-radius:99px; font-size:.78rem;
+  background:var(--bg3); border:1px solid var(--border); color:var(--text2);
+}
+.fiche-section { margin:1.5rem 0; }
+.fiche-section-title {
+  font-size:.7rem; font-weight:500; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--accent); margin-bottom:.75rem; padding-bottom:.4rem;
+  border-bottom:1px solid var(--border);
+}
+.regles-content {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:var(--radius); padding:1.25rem;
+  color:var(--text2); font-size:.9rem; line-height:1.7;
+}
+.regles-content h3 { font-family:var(--font-display); color:var(--text); margin:1rem 0 .4rem; font-size:1rem; }
+.regles-content h3:first-child { margin-top:0; }
+.regles-content ol, .regles-content ul { padding-left:1.2rem; margin:.5rem 0; }
+.regles-content li { margin:.3rem 0; }
+.regles-content p { margin:.4rem 0; }
+.regles-content strong { color:var(--text); }
+
+/* Bouton jouer */
+.btn-jouer {
+  display:flex; align-items:center; justify-content:center; gap:.6rem;
+  width:100%; padding:1rem; border-radius:var(--radius);
+  background:var(--accent); color:var(--bg); font-size:1rem; font-weight:500;
+  font-family:var(--font-display); letter-spacing:.02em;
+  transition:all var(--transition); box-shadow:var(--glow);
+}
+.btn-jouer:hover { transform:translateY(-1px); filter:brightness(1.08); box-shadow:0 8px 24px rgba(232,197,96,.25); }
+.btn-jouer:active { transform:translateY(0); }
+
+/* ─── Page Setup joueurs ─────────────────────────────────────────── */
+#page-setup { overflow-y:auto; }
+.setup-container { max-width:600px; margin:0 auto; padding:1.5rem 1.25rem 3rem; gap:1.5rem; display:flex; flex-direction:column; }
+.setup-title { font-size:1.5rem; }
+.joueurs-list { display:flex; flex-direction:column; gap:.6rem; }
+.joueur-item {
+  display:flex; align-items:center; gap:.75rem;
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:.6rem .75rem;
+  transition:border-color var(--transition);
+}
+.joueur-item:focus-within { border-color:var(--accent); }
+.joueur-avatar {
+  width:36px; height:36px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.1rem; font-weight:700; font-family:var(--font-display);
+  background:var(--accent-bg); color:var(--accent); border:1px solid var(--accent);
+  cursor:pointer; transition:all var(--transition);
+}
+.joueur-avatar:hover { filter:brightness(1.1); }
+.joueur-input {
+  flex:1; background:transparent; border:none; outline:none;
+  color:var(--text); font-family:var(--font-body); font-size:.95rem;
+}
+.joueur-input::placeholder { color:var(--text3); }
+.joueur-del {
+  width:28px; height:28px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--text3); transition:all var(--transition);
+}
+.joueur-del:hover { color:var(--red); background:rgba(224,85,85,.1); }
+.btn-ajouter {
+  display:flex; align-items:center; justify-content:center; gap:.5rem;
+  padding:.7rem; border-radius:var(--radius-sm);
+  border:1px dashed var(--border2); color:var(--text3);
+  font-size:.88rem; transition:all var(--transition);
+}
+.btn-ajouter:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-bg); }
+.setup-actions { display:flex; flex-direction:column; gap:.75rem; }
+.btn-primary {
+  padding:.85rem; border-radius:var(--radius);
+  background:var(--accent); color:var(--bg);
+  font-size:1rem; font-weight:500; font-family:var(--font-display);
+  transition:all var(--transition);
+}
+.btn-primary:hover:not(:disabled) { filter:brightness(1.08); transform:translateY(-1px); }
+.btn-primary:disabled { opacity:.4; cursor:not-allowed; }
+
+/* ─── Page Jeu ───────────────────────────────────────────────────── */
+#page-jeu { overflow-y:auto; }
+.jeu-container { max-width:800px; margin:0 auto; padding:1rem 1rem 3rem; display:flex; flex-direction:column; gap:1rem; }
+
+/* Tableau de score générique */
+.score-table-wrap { overflow-x:auto; }
+.score-table {
+  width:100%; border-collapse:collapse; font-size:.85rem;
+  background:var(--bg2); border-radius:var(--radius); overflow:hidden;
+}
+.score-table th {
+  padding:.6rem .8rem; text-align:center;
+  background:var(--bg3); color:var(--text2); font-weight:500; font-size:.78rem;
+  border-bottom:1px solid var(--border);
+}
+.score-table th.active-col { color:var(--accent); background:var(--accent-bg); }
+.score-table td {
+  padding:.55rem .8rem; text-align:center;
+  border-bottom:1px solid var(--border);
+}
+.score-table tr:last-child td { border-bottom:none; }
+.score-table .ligne-label { text-align:left; color:var(--text2); font-size:.82rem; }
+.score-table .section-header td {
+  background:var(--bg3); color:var(--accent); font-size:.72rem;
+  text-transform:uppercase; letter-spacing:.1em; font-weight:500;
+  padding:.4rem .8rem; text-align:left;
+}
+.score-cell { position:relative; }
+.score-cell.filled { color:var(--text); font-weight:500; }
+.score-cell.possible {
+  color:var(--accent); cursor:pointer; transition:background var(--transition);
+}
+.score-cell.possible:hover { background:var(--accent-bg); }
+.score-cell.zeroed { color:var(--text3); }
+.total-row td { font-weight:600; background:var(--bg3); }
+.total-row td.winner { color:var(--accent); }
+.bonus-row td { font-size:.78rem; color:var(--green); }
+
+/* ─── Composant Dés ──────────────────────────────────────────────── */
+.des-zone {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:var(--radius); padding:1.25rem;
+}
+.des-titre { font-size:.7rem; text-transform:uppercase; letter-spacing:.12em; color:var(--accent); margin-bottom:.9rem; }
+.des-grid { display:flex; gap:.6rem; justify-content:center; flex-wrap:wrap; }
+.de {
+  width:60px; height:60px; border-radius:10px;
+  background:var(--surface); border:2px solid var(--border2);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-display); font-size:1.6rem; font-weight:700;
+  cursor:pointer; transition:all var(--transition);
+  user-select:none; position:relative;
+}
+.de:hover { border-color:var(--accent); }
+.de.garde {
+  background:var(--accent-bg); border-color:var(--accent); color:var(--accent);
+  box-shadow:0 0 12px rgba(232,197,96,.2);
+}
+.de.garde::after {
+  content:'✓'; position:absolute; top:-6px; right:-6px;
+  width:16px; height:16px; border-radius:50%;
+  background:var(--accent); color:var(--bg);
+  font-size:.6rem; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-body);
+}
+.de.roll-anim { animation:rollDe .3s ease; }
+@keyframes rollDe { 0%{transform:scale(.8) rotate(-10deg);} 60%{transform:scale(1.1) rotate(5deg);} 100%{transform:scale(1) rotate(0);} }
+.des-actions { display:flex; gap:.75rem; align-items:center; margin-top:1rem; flex-wrap:wrap; }
+.btn-lancer {
+  flex:1; min-width:140px; padding:.75rem 1rem; border-radius:var(--radius-sm);
+  background:var(--accent); color:var(--bg); font-weight:500;
+  display:flex; align-items:center; justify-content:center; gap:.5rem;
+  transition:all var(--transition);
+}
+.btn-lancer:hover:not(:disabled) { filter:brightness(1.08); }
+.btn-lancer:disabled { opacity:.4; cursor:not-allowed; }
+.lances-restants { font-size:.82rem; color:var(--text2); }
+.lances-dots { display:flex; gap:4px; }
+.lances-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:var(--accent); transition:all var(--transition);
+}
+.lances-dot.used { background:var(--text3); }
+
+/* ─── Composant Cartes ───────────────────────────────────────────── */
+.carte {
+  display:inline-flex; flex-direction:column; align-items:center; justify-content:center;
+  width:56px; height:80px; border-radius:8px;
+  background:var(--surface); border:1.5px solid var(--border2);
+  font-family:var(--font-display); font-size:1.2rem; font-weight:700;
+  position:relative; transition:all var(--transition);
+}
+.carte.rouge { color:#e05555; }
+.carte.noir { color:var(--text); }
+.carte-val { font-size:1rem; line-height:1; }
+.carte-couleur { font-size:1.4rem; line-height:1; }
+.carte-dos {
+  background:linear-gradient(135deg, var(--bg3) 0%, var(--surface) 100%);
+  border-color:var(--accent);
+}
+.carte-dos::after {
+  content:''; position:absolute; inset:4px; border-radius:4px;
+  border:1px solid var(--border);
+}
+
+/* ─── Info joueur actuel ─────────────────────────────────────────── */
+.joueur-actuel-bar {
+  display:flex; align-items:center; gap:.75rem;
+  background:var(--accent-bg); border:1px solid var(--accent);
+  border-radius:var(--radius-sm); padding:.6rem 1rem;
+}
+.joueur-actuel-avatar {
+  width:32px; height:32px; border-radius:50%;
+  background:var(--accent); color:var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:.9rem; flex-shrink:0;
+  font-family:var(--font-display);
+}
+.joueur-actuel-info { flex:1; }
+.joueur-actuel-label { font-size:.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:.08em; }
+.joueur-actuel-nom { font-size:.95rem; font-weight:500; }
+.tour-info { font-size:.8rem; color:var(--text2); }
+
+/* ─── Jetons (421) ───────────────────────────────────────────────── */
+.jetons-grid { display:flex; flex-wrap:wrap; gap:.75rem; }
+.jeton-joueur {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:.75rem 1rem;
+  min-width:120px; text-align:center;
+  transition:all var(--transition);
+}
+.jeton-joueur.actif { border-color:var(--accent); background:var(--accent-bg); }
+.jeton-joueur.eliminated { opacity:.4; }
+.jeton-nom { font-size:.8rem; color:var(--text2); margin-bottom:.4rem; }
+.jeton-count { font-size:1.5rem; font-weight:700; font-family:var(--font-display); color:var(--accent); }
+.jeton-icons { display:flex; flex-wrap:wrap; gap:3px; justify-content:center; margin-top:.4rem; }
+.jeton-icon { width:10px; height:10px; border-radius:50%; background:var(--accent); display:inline-block; }
+
+/* ─── Résultat / Victoire ────────────────────────────────────────── */
+.fin-overlay {
+  text-align:center; padding:2rem 1.25rem;
+  background:var(--bg2); border:1px solid var(--accent);
+  border-radius:var(--radius); margin:1rem;
+}
+.fin-emoji { font-size:3rem; margin-bottom:.75rem; }
+.fin-title { font-size:1.8rem; margin-bottom:.5rem; color:var(--accent); }
+.fin-subtitle { color:var(--text2); margin-bottom:1.5rem; }
+.btn-rejouer {
+  padding:.8rem 2rem; border-radius:var(--radius);
+  background:var(--accent); color:var(--bg);
+  font-size:1rem; font-weight:500; font-family:var(--font-display);
+  transition:all var(--transition); display:inline-block;
+}
+.btn-rejouer:hover { filter:brightness(1.08); }
+
+/* ─── Modal Thème ────────────────────────────────────────────────── */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.6);
+  display:flex; align-items:flex-end; justify-content:center;
+  z-index:200; opacity:0; pointer-events:none; transition:opacity var(--transition);
+}
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal-sheet {
+  background:var(--bg2); border-radius:var(--radius) var(--radius) 0 0;
+  border:1px solid var(--border2); border-bottom:none;
+  width:100%; max-width:480px; padding:1.5rem 1.25rem 2.5rem;
+  transform:translateY(100%); transition:transform var(--transition);
+}
+.modal-overlay.open .modal-sheet { transform:translateY(0); }
+.modal-title { font-size:1rem; font-weight:700; margin-bottom:1.25rem; font-family:var(--font-display); }
+.modal-section-label { font-size:.72rem; text-transform:uppercase; letter-spacing:.1em; color:var(--text3); margin-bottom:.6rem; }
+.theme-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:.5rem; margin-bottom:1.25rem; }
+.theme-swatch {
+  aspect-ratio:1; border-radius:var(--radius-sm); border:2px solid transparent;
+  cursor:pointer; transition:all var(--transition);
+}
+.theme-swatch.active { border-color:var(--text); transform:scale(1.05); }
+.mode-toggle {
+  display:flex; gap:.5rem; margin-bottom:.5rem;
+}
+.mode-btn {
+  flex:1; padding:.6rem; border-radius:var(--radius-sm);
+  border:1px solid var(--border); background:var(--bg3);
+  color:var(--text2); font-size:.88rem; transition:all var(--transition);
+  display:flex; align-items:center; justify-content:center; gap:.4rem;
+}
+.mode-btn.active { background:var(--accent-bg); border-color:var(--accent); color:var(--accent); }
+
+/* ─── Toast ──────────────────────────────────────────────────────── */
+#toast {
+  position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(120%);
+  background:var(--surface); border:1px solid var(--border2);
+  border-radius:var(--radius-sm); padding:.6rem 1.2rem;
+  font-size:.88rem; color:var(--text); box-shadow:var(--shadow);
+  z-index:300; transition:transform .3s cubic-bezier(.4,0,.2,1);
+  white-space:nowrap;
+}
+#toast.show { transform:translateX(-50%) translateY(0); }
+
+/* ─── Responsive ─────────────────────────────────────────────────── */
+@media(min-width:600px) {
+  #header { padding:1rem 2rem; }
+  .fiche-container, .setup-container { padding:2rem 2rem 4rem; }
+  .jeu-container { padding:1.5rem 2rem 4rem; }
+  #page-catalogue { padding:2rem 2rem 3rem; }
+}
+</style>
+</head>
+<body data-mode="dark" data-theme="or">
+<div id="app">
+
+  <!-- Header -->
+  <header id="header">
+    <button id="btn-back" onclick="goBack()">
+      ← <span id="btn-back-label">Retour</span>
+    </button>
+    <div id="header-logo" onclick="goTo('catalogue')">
+      <span>🎴</span> Soirée Jeux
+    </div>
+    <div id="header-actions">
+      <button class="icon-btn" onclick="openThemeModal()" title="Thème" aria-label="Changer le thème">🎨</button>
+    </div>
+  </header>
+
+  <!-- Page Catalogue -->
+  <main class="page active" id="page-catalogue">
+    <div class="catalogue-hero">
+      <h2>Bonne soirée !</h2>
+      <p>Choisissez votre jeu et lancez la partie</p>
+    </div>
+    <div class="catalogue-filters">
+      <button class="filter-btn active" data-filter="tous" onclick="filtrerJeux(this,'tous')">Tous</button>
+      <button class="filter-btn" data-filter="dés" onclick="filtrerJeux(this,'dés')">🎲 Dés</button>
+      <button class="filter-btn" data-filter="cartes" onclick="filtrerJeux(this,'cartes')">🃏 Cartes</button>
+    </div>
+    <div class="games-grid" id="games-grid"></div>
+  </main>
+
+  <!-- Page Fiche -->
+  <main class="page" id="page-fiche">
+    <div class="fiche-container" id="fiche-content"></div>
+  </main>
+
+  <!-- Page Setup -->
+  <main class="page" id="page-setup">
+    <div class="setup-container" id="setup-content"></div>
+  </main>
+
+  <!-- Page Jeu -->
+  <main class="page" id="page-jeu">
+    <div class="jeu-container" id="jeu-content"></div>
+  </main>
+
+</div>
+
+<!-- Modal Thème -->
+<div class="modal-overlay" id="theme-modal" onclick="closeThemeModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-title">Apparence</div>
+    <div class="modal-section-label">Couleur d'accent</div>
+    <div class="theme-grid">
+      <div class="theme-swatch active" data-theme="or"     style="background:#e8c560" onclick="setTheme('or')"     title="Or"></div>
+      <div class="theme-swatch"        data-theme="jade"   style="background:#4ecdc4" onclick="setTheme('jade')"   title="Jade"></div>
+      <div class="theme-swatch"        data-theme="rubis"  style="background:#e05580" onclick="setTheme('rubis')"  title="Rubis"></div>
+      <div class="theme-swatch"        data-theme="indigo" style="background:#7c6cf0" onclick="setTheme('indigo')" title="Indigo"></div>
+      <div class="theme-swatch"        data-theme="feu"    style="background:#e87840" onclick="setTheme('feu')"    title="Feu"></div>
+    </div>
+    <div class="modal-section-label">Mode</div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="mode-dark-btn"  onclick="setMode('dark')">🌙 Sombre</button>
+      <button class="mode-btn"        id="mode-light-btn" onclick="setMode('light')">☀️ Clair</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script type="module">
+// ─── Catalogue des jeux (import dynamique) ───────────────────────
+const JEUX_MANIFEST = [
+  { id:'yams',    path:'./games/yams.js' },
+  { id:'421',     path:'./games/421.js' },
+  { id:'bataille',path:'./games/bataille.js' },
+];
+
+const modulesCache = {};
+async function loadModule(id) {
+  if (modulesCache[id]) return modulesCache[id];
+  const m = JEUX_MANIFEST.find(j=>j.id===id);
+  if (!m) return null;
+  const mod = await import(m.path);
+  modulesCache[id] = mod.default;
+  return mod.default;
+}
+
+// ─── State global ─────────────────────────────────────────────────
+let state = {
+  page: 'catalogue',
+  jeuId: null,
+  module: null,
+  jeuState: null,
+  joueurs: [],
+  filtre: 'tous',
+};
+
+// ─── Navigation ───────────────────────────────────────────────────
+window.goTo = function(page, jeuId=null) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  state.page = page;
+  state.jeuId = jeuId || state.jeuId;
+  const btnBack = document.getElementById('btn-back');
+  const logo = document.getElementById('header-logo');
+  if (page === 'catalogue') {
+    btnBack.classList.remove('visible');
+    logo.style.display='flex';
+  } else {
+    btnBack.classList.add('visible');
+    document.getElementById('btn-back-label').textContent =
+      page==='fiche' ? 'Catalogue' : page==='setup' ? state.module?.nom||'' : state.module?.nom||'';
+    logo.style.display='none';
+  }
+  window.scrollTo(0,0);
+};
+window.goBack = function() {
+  if (state.page==='fiche') goTo('catalogue');
+  else if (state.page==='setup') goTo('fiche', state.jeuId);
+  else if (state.page==='jeu') { if(confirm('Abandonner la partie ?')) goTo('fiche', state.jeuId); }
+};
+
+// ─── Catalogue ────────────────────────────────────────────────────
+window.filtrerJeux = function(btn, filtre) {
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  state.filtre = filtre;
+  renderCatalogue();
+};
+
+async function renderCatalogue() {
+  const grid = document.getElementById('games-grid');
+  grid.innerHTML = '<div style="color:var(--text3);font-size:.88rem;padding:1rem 0">Chargement…</div>';
+  const modules = await Promise.all(JEUX_MANIFEST.map(m=>loadModule(m.id)));
+  const filtered = modules.filter(m => state.filtre==='tous' || m.type===state.filtre);
+  grid.innerHTML = filtered.map(m => `
+    <div class="game-card" onclick="ouvrirFiche('${m.id}')">
+      <span class="game-card-emoji">${m.emoji}</span>
+      <div class="game-card-header">
+        <div class="game-card-title">${m.nom}</div>
+        <span class="game-card-badge">${m.type}</span>
+      </div>
+      <p class="game-card-desc">${m.description}</p>
+      <div class="game-card-meta">
+        <span>👥 ${m.joueursMin}–${m.joueursMax} joueurs</span>
+      </div>
+      <button class="game-card-cta">Voir le jeu →</button>
+    </div>
+  `).join('');
+}
+
+window.ouvrirFiche = async function(id) {
+  state.module = await loadModule(id);
+  renderFiche(state.module);
+  goTo('fiche', id);
+};
+
+function renderFiche(m) {
+  document.getElementById('fiche-content').innerHTML = `
+    <div class="fiche-header">
+      <span class="fiche-emoji">${m.emoji}</span>
+      <h1 class="fiche-title">${m.nom}</h1>
+      <p class="fiche-desc">${m.description}</p>
+      <div class="fiche-meta">
+        <span class="fiche-tag">🎲 ${m.type}</span>
+        <span class="fiche-tag">👥 ${m.joueursMin}–${m.joueursMax} joueurs</span>
+      </div>
+    </div>
+    <div class="fiche-section">
+      <div class="fiche-section-title">Règles du jeu</div>
+      <div class="regles-content">${m.regles}</div>
+    </div>
+    <div class="fiche-section">
+      <div class="fiche-section-title">Jouer</div>
+      <button class="btn-jouer" onclick="ouvrirSetup('${m.id}')">
+        ${m.emoji} Lancer une partie
+      </button>
+    </div>
+  `;
+}
+
+// ─── Setup Joueurs ────────────────────────────────────────────────
+const COULEURS_AVATAR = ['#e8c560','#4ecdc4','#e05580','#7c6cf0','#e87840','#4caf7d','#e05555','#38b2aa'];
+const AVATARS_EMOJI = ['🦁','🐯','🦊','🐺','🦋','🐉','🦅','🎭'];
+
+window.ouvrirSetup = function(id) {
+  state.joueurs = [
+    { id:1, nom:'Joueur 1', avatar: AVATARS_EMOJI[0] },
+    { id:2, nom:'Joueur 2', avatar: AVATARS_EMOJI[1] },
+  ];
+  renderSetup();
+  goTo('setup', id);
+};
+
+function renderSetup() {
+  const m = state.module;
+  const el = document.getElementById('setup-content');
+  el.innerHTML = `
+    <div>
+      <h2 class="setup-title">${m.emoji} ${m.nom}</h2>
+      <p style="color:var(--text2);font-size:.88rem;margin-top:.3rem">Configurez les joueurs (${m.joueursMin}–${m.joueursMax})</p>
+    </div>
+    <div class="joueurs-list" id="joueurs-list"></div>
+    ${state.joueurs.length < m.joueursMax ? `<button class="btn-ajouter" onclick="ajouterJoueur()">+ Ajouter un joueur</button>` : ''}
+    <div class="setup-actions">
+      <button class="btn-primary" id="btn-demarrer" onclick="demarrerPartie()"
+        ${state.joueurs.length < m.joueursMin ? 'disabled' : ''}>
+        Démarrer la partie →
+      </button>
+    </div>
+  `;
+  renderJoueursList();
+}
+
+function renderJoueursList() {
+  const list = document.getElementById('joueurs-list');
+  if (!list) return;
+  list.innerHTML = state.joueurs.map((j,i) => `
+    <div class="joueur-item">
+      <div class="joueur-avatar" style="background:${COULEURS_AVATAR[i]}20;color:${COULEURS_AVATAR[i]};border-color:${COULEURS_AVATAR[i]}"
+           onclick="cycleAvatar(${i})" title="Changer l'emoji">
+        ${j.avatar}
+      </div>
+      <input class="joueur-input" value="${j.nom}" placeholder="Nom du joueur"
+             oninput="state.joueurs[${i}].nom=this.value;updateDemarrerBtn()"
+             maxlength="20">
+      ${state.joueurs.length > state.module.joueursMin ? `<button class="joueur-del" onclick="supprimerJoueur(${i})">✕</button>` : ''}
+    </div>
+  `).join('');
+}
+
+window.cycleAvatar = function(i) {
+  const idx = AVATARS_EMOJI.indexOf(state.joueurs[i].avatar);
+  state.joueurs[i].avatar = AVATARS_EMOJI[(idx+1)%AVATARS_EMOJI.length];
+  renderJoueursList();
+};
+window.ajouterJoueur = function() {
+  const i = state.joueurs.length;
+  state.joueurs.push({ id:Date.now(), nom:`Joueur ${i+1}`, avatar:AVATARS_EMOJI[i%AVATARS_EMOJI.length] });
+  renderSetup();
+};
+window.supprimerJoueur = function(i) {
+  state.joueurs.splice(i,1);
+  renderSetup();
+};
+window.updateDemarrerBtn = function() {
+  const btn = document.getElementById('btn-demarrer');
+  if(btn) btn.disabled = state.joueurs.length < state.module.joueursMin;
+};
+
+// ─── Démarrage Partie ─────────────────────────────────────────────
+window.demarrerPartie = function() {
+  const joueurs = state.joueurs.map((j,i) => ({ ...j, couleur: COULEURS_AVATAR[i] }));
+  state.jeuState = state.module.init(joueurs);
+  goTo('jeu', state.jeuId);
+  renderJeu();
+};
+
+// ─── Moteur de rendu jeu ──────────────────────────────────────────
+window.renderJeu = function() {
+  const id = state.jeuId;
+  if (id==='yams') renderYams();
+  else if (id==='421') render421();
+  else if (id==='bataille') renderBataille();
+};
+
+// ─── YAMS ─────────────────────────────────────────────────────────
+function renderYams() {
+  const s = state.jeuState;
+  const m = state.module;
+  const joueurAct = s.joueurs[s.joueurActuel];
+
+  if (s.phase === 'fin') { renderFin(); return; }
+
+  const FACES = ['','⚀','⚁','⚂','⚃','⚄','⚅'];
+
+  document.getElementById('jeu-content').innerHTML = `
+    <!-- Joueur actuel -->
+    <div class="joueur-actuel-bar">
+      <div class="joueur-actuel-avatar" style="background:${joueurAct.couleur}">${joueurAct.avatar}</div>
+      <div class="joueur-actuel-info">
+        <div class="joueur-actuel-label">Tour de</div>
+        <div class="joueur-actuel-nom">${joueurAct.nom}</div>
+      </div>
+      <div class="tour-info">Manche ${Math.min(s.manche,13)}/13</div>
+    </div>
+
+    <!-- Dés -->
+    <div class="des-zone">
+      <div class="des-titre">🎲 Dés</div>
+      <div class="des-grid">
+        ${s.des.map((d,i) => `
+          <div class="de${s.desGardes[i]?' garde':''}" id="de-${i}"
+               onclick="toggleDeYams(${i})" title="${s.desGardes[i]?'Relâcher':'Garder'}">
+            ${FACES[d]}
+          </div>
+        `).join('')}
+      </div>
+      <div class="des-actions">
+        <button class="btn-lancer" ${s.lancesRestants<=0||s.phase==='fin'?'disabled':''} onclick="lancerYams()">
+          🎲 ${s.lancesRestants===3?'Lancer':'Relancer'} (${s.lancesRestants} restant${s.lancesRestants>1?'s':''})
+        </button>
+        <div>
+          <div class="lances-restants" style="font-size:.7rem;margin-bottom:3px">Lancers</div>
+          <div class="lances-dots">
+            ${[0,1,2].map(i=>`<div class="lances-dot${i>=s.lancesRestants?' used':''}"></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tableau de score -->
+    <div class="score-table-wrap">
+      <table class="score-table">
+        <thead>
+          <tr>
+            <th style="text-align:left;min-width:110px">Combinaison</th>
+            ${s.joueurs.map((j,i) => `
+              <th class="${i===s.joueurActuel?'active-col':''}" style="color:${j.couleur}">
+                ${j.avatar} ${j.nom.split(' ')[0]}
+              </th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${m.scoreConfig.sections.map(section => `
+            <tr class="section-header"><td colspan="${s.joueurs.length+1}">${section.titre}</td></tr>
+            ${section.lignes.map(ligne => `
+              <tr>
+                <td class="ligne-label" title="${ligne.hint}">${ligne.label}</td>
+                ${s.joueurs.map((j,ji) => {
+                  const filled = j.scores[ligne.id] !== undefined;
+                  const possible = !filled && ji===s.joueurActuel && s.phase==='scorer';
+                  const pv = possible ? m.getScorePossible(s, ligne.id) : 0;
+                  return `<td class="score-cell${filled?' filled':possible&&pv>0?' possible':possible?' zeroed':''}"
+                    ${possible?`onclick="inscrireYams('${ligne.id}')" title="Inscrire ${pv} pts"`:''}
+                  >${filled?j.scores[ligne.id]:possible&&pv>0?`<span style="opacity:.7">${pv}</span>`:filled?j.scores[ligne.id]:''}</td>`;
+                }).join('')}
+              </tr>
+            `).join('')}
+          `).join('')}
+          <tr class="bonus-row">
+            <td class="ligne-label">Bonus (≥63)</td>
+            ${s.joueurs.map(j => `<td>${j.bonus>0?'+'+j.bonus:'-'}</td>`).join('')}
+          </tr>
+          <tr class="total-row">
+            <td class="ligne-label">Total</td>
+            ${s.joueurs.map((j,i) => {
+              const isMax = j.total===Math.max(...s.joueurs.map(jj=>jj.total));
+              return `<td class="${isMax&&j.total>0?'winner':''}" style="color:${j.couleur}">${j.total}</td>`;
+            }).join('')}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    ${s.phase==='lancer'?`<p style="color:var(--text3);font-size:.82rem;text-align:center">Lancez les dés pour commencer votre tour</p>`:''}
+  `;
+}
+
+window.lancerYams = function() {
+  state.jeuState = state.module.lancerDes(state.jeuState);
+  // Animation
+  state.jeuState.des.forEach((_,i) => {
+    if(!state.jeuState.desGardes[i]) {
+      const el = document.getElementById('de-'+i);
+      if(el) { el.classList.remove('roll-anim'); void el.offsetWidth; el.classList.add('roll-anim'); }
+    }
+  });
+  renderYams();
+};
+
+window.toggleDeYams = function(i) {
+  state.jeuState = state.module.toggleGarde(state.jeuState, i);
+  renderYams();
+};
+
+window.inscrireYams = function(ligneId) {
+  const score = state.module.getScorePossible(state.jeuState, ligneId);
+  state.jeuState = state.module.inscrireScore(state.jeuState, ligneId);
+  toast(`Inscrit : ${score} pt${score>1?'s':''}`, 1800);
+  renderYams();
+};
+
+// ─── 421 ──────────────────────────────────────────────────────────
+function render421() {
+  const s = state.jeuState;
+  const m = state.module;
+  if (s.phase==='fin') { renderFin(); return; }
+  const FACES = ['','⚀','⚁','⚂','⚃','⚄','⚅'];
+  const joueurAct = s.joueurs[s.joueurActuel];
+
+  document.getElementById('jeu-content').innerHTML = `
+    <!-- Joueur actuel -->
+    <div class="joueur-actuel-bar">
+      <div class="joueur-actuel-avatar" style="background:${joueurAct.couleur}">${joueurAct.avatar}</div>
+      <div class="joueur-actuel-info">
+        <div class="joueur-actuel-label">Tour de</div>
+        <div class="joueur-actuel-nom">${joueurAct.nom}</div>
+      </div>
+      <div class="tour-info" style="display:flex;align-items:center;gap:.4rem">
+        🪙 Pot : <strong>${s.pot}</strong>
+      </div>
+    </div>
+
+    <!-- Jetons -->
+    <div class="des-zone">
+      <div class="des-titre">🪙 Jetons</div>
+      <div class="jetons-grid">
+        ${s.joueurs.map((j,i) => `
+          <div class="jeton-joueur${i===s.joueurActuel?' actif':j.jetons===0?' eliminated':''}">
+            <div class="jeton-nom">${j.avatar} ${j.nom}</div>
+            <div class="jeton-count">${j.jetons}</div>
+            <div class="jeton-icons">
+              ${Array.from({length:Math.min(j.jetons,12)}).map(()=>`<div class="jeton-icon"></div>`).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Dés -->
+    ${s.phase==='resultat_tour' ? renderResultatTour421(s,m) : `
+    <div class="des-zone">
+      <div class="des-titre">🎲 Dés</div>
+      <div class="des-grid">
+        ${s.des.map((d,i) => `
+          <div class="de${s.desGardes[i]?' garde':''}" id="de421-${i}" onclick="toggleDe421(${i})">
+            ${FACES[d]}
+          </div>
+        `).join('')}
+      </div>
+      ${s.tourScores.length>0 ? `
+        <div style="margin-top:.75rem;padding:.6rem;background:var(--bg3);border-radius:var(--radius-sm);font-size:.82rem">
+          ${s.tourScores.map(ts => {
+            const j = s.joueurs.find(jj=>jj.id===ts.joueurId)||s.joueurs[ts.joueurIdx];
+            return `<div style="display:flex;justify-content:space-between"><span>${j?j.avatar+' '+j.nom:'?'}</span><strong>${ts.label}</strong></div>`;
+          }).join('')}
+        </div>
+      ` : ''}
+      <div class="des-actions">
+        ${s.lancesRestants>0&&s.phase!=='fin' ? `
+          <button class="btn-lancer" onclick="lancer421()">
+            🎲 ${s.lancesRestants===3?'Lancer':'Relancer'} (${s.lancesRestants} restant${s.lancesRestants>1?'s':''})
+          </button>
+        ` : s.phase==='scorer' ? `
+          <button class="btn-lancer" onclick="validerTour421()">✓ Valider ce résultat</button>
+        ` : ''}
+        <div>
+          <div class="lances-restants" style="font-size:.7rem;margin-bottom:3px">Lancers</div>
+          <div class="lances-dots">
+            ${[0,1,2].map(i=>`<div class="lances-dot${i>=s.lancesRestants?' used':''}"></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+    `}
+  `;
+}
+
+function renderResultatTour421(s,m) {
+  const perdant = s.tourScores.reduce((min,sc)=>sc.score<min.score?sc:min, s.tourScores[0]);
+  const perdantJ = s.joueurs[perdant.joueurIdx];
+  const is421 = perdant.score===1000;
+  return `
+    <div class="des-zone" style="border-color:var(--red)">
+      <div class="des-titre" style="color:var(--red)">📋 Résultat du tour</div>
+      ${s.tourScores.map(ts=>{
+        const j=s.joueurs[ts.joueurIdx];
+        return `<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border)">
+          <span>${j.avatar} ${j.nom}</span>
+          <strong>${ts.label}</strong>
+        </div>`;
+      }).join('')}
+      <div style="margin-top:.8rem;padding:.7rem;background:rgba(224,85,85,.1);border-radius:var(--radius-sm);color:var(--red)">
+        ${perdantJ.avatar} <strong>${perdantJ.nom}</strong> perd ${is421?'3':'1'} jeton${is421?'s':''} !
+      </div>
+      <button class="btn-lancer" style="margin-top:.75rem" onclick="appliquerResultat421()">Continuer →</button>
+    </div>
+  `;
+}
+
+window.lancer421 = function() {
+  state.jeuState = state.module.lancerDes(state.jeuState);
+  state.jeuState.des.forEach((_,i)=>{
+    if(!state.jeuState.desGardes[i]){
+      const el=document.getElementById('de421-'+i);
+      if(el){el.classList.remove('roll-anim');void el.offsetWidth;el.classList.add('roll-anim');}
+    }
+  });
+  render421();
+};
+window.toggleDe421 = function(i) {
+  state.jeuState = state.module.toggleGarde(state.jeuState,i);
+  render421();
+};
+window.validerTour421 = function() {
+  state.jeuState = state.module.validerTour(state.jeuState);
+  render421();
+};
+window.appliquerResultat421 = function() {
+  state.jeuState = state.module.appliquerResultatTour(state.jeuState);
+  render421();
+};
+
+// ─── BATAILLE ─────────────────────────────────────────────────────
+function renderBataille() {
+  const s = state.jeuState;
+  if (s.phase==='fin') { renderFin(); return; }
+
+  const actifs = s.joueurs.filter(j=>j.main.length>0);
+
+  document.getElementById('jeu-content').innerHTML = `
+    <!-- Stats joueurs -->
+    <div class="jetons-grid">
+      ${s.joueurs.map(j => `
+        <div class="jeton-joueur${j.main.length===0?' eliminated':''}">
+          <div class="jeton-nom">${j.avatar} ${j.nom}</div>
+          <div class="jeton-count">${j.main.length}</div>
+          <div style="font-size:.7rem;color:var(--text3)">cartes</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- Table de jeu -->
+    <div class="des-zone" style="text-align:center">
+      <div class="des-titre">🃏 Table</div>
+      ${s.phase==='jouer' ? `
+        <p style="color:var(--text2);font-size:.9rem;margin-bottom:1rem">
+          ${s.cartesCachees.length>0?`⚠️ Bataille en cours — ${s.cartesCachees.length} cartes en jeu !`:'Chaque joueur retourne sa carte du dessus.'}
+        </p>
+        <button class="btn-lancer" onclick="jouerBataille()" style="max-width:280px;margin:0 auto">
+          ${actifs.length} joueurs actifs — Retourner !
+        </button>
+      ` : s.phase==='resultat' || s.phase==='bataille' ? `
+        <div style="display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
+          ${s.cartesTable.map(ct => {
+            const j = s.joueurs.find(jj=>jj.id===ct.joueurId);
+            const c = ct.carte;
+            return `
+              <div style="text-align:center">
+                <div style="font-size:.75rem;color:var(--text2);margin-bottom:.4rem">${j?j.avatar+' '+j.nom:''}</div>
+                <div class="carte ${c.rouge?'rouge':'noir'}">
+                  <span class="carte-val">${c.valeur}</span>
+                  <span class="carte-couleur">${c.couleur}</span>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        ${s.phase==='bataille' ? `
+          <div style="padding:.6rem;background:rgba(224,85,85,.1);border-radius:var(--radius-sm);color:var(--red);margin-bottom:.8rem;font-weight:500">
+            ⚔️ Bataille ! ${s.cartesCachees.length} cartes dans le pot
+          </div>
+          <button class="btn-lancer" onclick="jouerBataille()">Retourner la carte décisive !</button>
+        ` : `
+          <div style="padding:.6rem;background:var(--accent-bg);border-radius:var(--radius-sm);color:var(--accent);margin-bottom:.8rem">
+            ${s.message}
+          </div>
+          <button class="btn-lancer" onclick="continuerBataille()">Tour suivant →</button>
+        `}
+      ` : ''}
+    </div>
+
+    <!-- Décompte cartes -->
+    <div style="font-size:.8rem;color:var(--text3);text-align:center">
+      Tour ${s.tour} — ${s.joueurs.reduce((a,j)=>a+j.main.length,0)} cartes en circulation
+    </div>
+  `;
+}
+
+window.jouerBataille = function() {
+  state.jeuState = state.module.jouerTour(state.jeuState);
+  renderBataille();
+};
+window.continuerBataille = function() {
+  state.jeuState = state.module.continuer(state.jeuState);
+  renderBataille();
+};
+
+// ─── Fin de partie ────────────────────────────────────────────────
+function renderFin() {
+  const s = state.jeuState;
+  let gagnant, message;
+  if (state.jeuId==='yams') {
+    gagnant = s.joueurs.reduce((max,j)=>j.total>max.total?j:max, s.joueurs[0]);
+    message = `${gagnant.avatar} ${gagnant.nom} gagne avec ${gagnant.total} points !`;
+  } else if (state.jeuId==='421') {
+    const actifs = s.joueurs.filter(j=>j.jetons>0);
+    gagnant = actifs.length===1 ? actifs[0] : s.joueurs.reduce((max,j)=>j.jetons>max.jetons?j:max,s.joueurs[0]);
+    message = `${gagnant.avatar} ${gagnant.nom} gagne avec ${gagnant.jetons} jeton${gagnant.jetons>1?'s':''} !`;
+  } else if (state.jeuId==='bataille') {
+    gagnant = s.joueurs.reduce((max,j)=>j.main.length>max.main.length?j:max,s.joueurs[0]);
+    message = `${gagnant.avatar} ${gagnant.nom} remporte la bataille !`;
+  }
+  document.getElementById('jeu-content').innerHTML = `
+    <div class="fin-overlay">
+      <div class="fin-emoji">🏆</div>
+      <div class="fin-title">Partie terminée !</div>
+      <div class="fin-subtitle">${message||''}</div>
+      ${state.jeuId==='yams' ? `
+        <div style="margin:1rem 0;text-align:left;max-width:300px;margin:1rem auto">
+          ${[...s.joueurs].sort((a,b)=>b.total-a.total).map((j,i)=>`
+            <div style="display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--border)">
+              <span style="font-size:1.1rem">${['🥇','🥈','🥉','4️⃣'][i]||''}</span>
+              <span style="font-size:1.1rem">${j.avatar}</span>
+              <span style="flex:1">${j.nom}</span>
+              <strong style="color:var(--accent)">${j.total} pts</strong>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+      <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-top:1.5rem">
+        <button class="btn-rejouer" onclick="ouvrirSetup('${state.jeuId}')">🔄 Rejouer</button>
+        <button class="btn-rejouer" style="background:var(--bg3);color:var(--text);border:1px solid var(--border)" onclick="goTo('catalogue')">🏠 Catalogue</button>
+      </div>
+    </div>
+  `;
+}
+
+// ─── Toast ────────────────────────────────────────────────────────
+let toastTimer;
+window.toast = function(msg, duration=2000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), duration);
+};
+
+// ─── Thème & Mode ─────────────────────────────────────────────────
+window.openThemeModal = function() {
+  document.getElementById('theme-modal').classList.add('open');
+};
+window.closeThemeModal = function(e) {
+  if(e.target.id==='theme-modal') document.getElementById('theme-modal').classList.remove('open');
+};
+window.setTheme = function(theme) {
+  document.body.dataset.theme = theme;
+  document.querySelectorAll('.theme-swatch').forEach(s=>s.classList.toggle('active',s.dataset.theme===theme));
+  localStorage.setItem('sj-theme', theme);
+};
+window.setMode = function(mode) {
+  document.body.dataset.mode = mode;
+  document.getElementById('mode-dark-btn').classList.toggle('active', mode==='dark');
+  document.getElementById('mode-light-btn').classList.toggle('active', mode==='light');
+  localStorage.setItem('sj-mode', mode);
+};
+
+// ─── Init ─────────────────────────────────────────────────────────
+(function init() {
+  const theme = localStorage.getItem('sj-theme') || 'or';
+  const mode  = localStorage.getItem('sj-mode')  || 'dark';
+  setTheme(theme);
+  setMode(mode);
+  renderCatalogue();
+})();
+</script>
+</body>
+</html>
