@@ -1,8 +1,8 @@
-// ─── Service Worker — Soirée Jeux ────────────────────────────────
+// ─── Service Worker — AlexRoll ───────────────────────────────────
 // Stratégie : Cache-first pour les assets, Network-first pour index.html
 // Mise à jour automatique : le SW détecte la nouvelle version et recharge
 
-const CACHE_NAME = 'soiree-jeux-v1.0.2';
+const CACHE_NAME = 'alexroll-v1.0.2';
 const CACHE_ASSETS = [
   './',
   './index.html',

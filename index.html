@@ -1345,19 +1345,19 @@ window.closeThemeModal = function(e) {
 window.setTheme = function(theme) {
   document.body.dataset.theme = theme;
   document.querySelectorAll('.theme-swatch').forEach(s=>s.classList.toggle('active',s.dataset.theme===theme));
-  localStorage.setItem('sj-theme', theme);
+  localStorage.setItem('ar-theme', theme);
 };
 window.setMode = function(mode) {
   document.body.dataset.mode = mode;
   document.getElementById('mode-dark-btn').classList.toggle('active', mode==='dark');
   document.getElementById('mode-light-btn').classList.toggle('active', mode==='light');
-  localStorage.setItem('sj-mode', mode);
+  localStorage.setItem('ar-mode', mode);
 };
 
 // ─── Init ─────────────────────────────────────────────────────────
 (function init() {
-  const theme = localStorage.getItem('sj-theme') || 'or';
-  const mode  = localStorage.getItem('sj-mode')  || 'dark';
+  const theme = localStorage.getItem('ar-theme') || 'or';
+  const mode  = localStorage.getItem('ar-mode')  || 'dark';
   setTheme(theme);
   setMode(mode);
   renderCatalogue();
