@@ -7,7 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Soirée Jeux</title>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./assets/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -555,6 +556,70 @@ body::before {
 
 <!-- Toast -->
 <div id="toast"></div>
+
+<!-- Bannière mise à jour -->
+<div id="update-banner" style="
+  display:none; position:fixed; bottom:1rem; left:50%; transform:translateX(-50%);
+  background:var(--surface); border:1px solid var(--accent); border-radius:var(--radius);
+  padding:.65rem 1rem; z-index:400; box-shadow:var(--shadow);
+  display:none; align-items:center; gap:.75rem; white-space:nowrap;
+  font-size:.85rem; color:var(--text);
+">
+  <span>✨ Mise à jour disponible</span>
+  <button onclick="appliquerMiseAJour()" style="
+    padding:.35rem .8rem; border-radius:var(--radius-sm);
+    background:var(--accent); color:var(--bg); border:none;
+    font-size:.82rem; font-weight:500; cursor:pointer; font-family:inherit;
+  ">Actualiser</button>
+</div>
+
+<script>
+// ─── Service Worker — enregistrement & mise à jour auto ──────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', { scope: './' })
+      .then(reg => {
+        // Vérifier les mises à jour toutes les 60 secondes
+        setInterval(() => reg.update(), 60000);
+
+        // Un nouveau SW est en attente d'activation
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // Nouvelle version prête — afficher la bannière
+              afficherBannereMaj();
+            }
+          });
+        });
+      })
+      .catch(err => console.warn('SW:', err));
+
+    // Quand le SW prend le contrôle (après skipWaiting), recharger la page
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
+  });
+}
+
+function afficherBannereMaj() {
+  const banner = document.getElementById('update-banner');
+  banner.style.display = 'flex';
+  // Animation d'entrée
+  banner.animate([
+    { opacity: 0, transform: 'translateX(-50%) translateY(20px)' },
+    { opacity: 1, transform: 'translateX(-50%) translateY(0)' }
+  ], { duration: 300, easing: 'ease', fill: 'forwards' });
+}
+
+window.appliquerMiseAJour = function() {
+  if (navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage('skipWaiting');
+  } else {
+    window.location.reload();
+  }
+};
+</script>
 
 <script>
 // ─── Modules jeux inlinés ────────────────────────────────────────
