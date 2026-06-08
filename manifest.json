@@ -1,6 +1,6 @@
 {
-  "name": "Soirée Jeux",
-  "short_name": "SoiréeJeux",
+  "name": "AlexRoll",
+  "short_name": "AlexRoll",
   "description": "Jeux de cartes et de dés pour vos soirées entre amis",
   "start_url": "/",
   "display": "standalone",
