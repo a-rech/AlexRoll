@@ -98,10 +98,15 @@ body::before {
 /* ─── Header ─────────────────────────────────────────────────────── */
 #header {
   display:flex; align-items:center; justify-content:space-between;
-  padding: 1rem 1.25rem;
+  padding: .55rem 1rem;                  /* ← hauteur de la top-bar : changer ici */
   border-bottom: 1px solid var(--border);
   background: var(--bg);
   position: sticky; top:0; z-index:100;
+  transition: max-height .3s ease, opacity .3s, padding .3s;
+  max-height: 200px; overflow:hidden;
+}
+#header.header-collapsed {
+  max-height:0; opacity:0; padding-top:0; padding-bottom:0; pointer-events:none;
 }
 #header-logo {
   font-family: var(--font-display);
@@ -114,20 +119,29 @@ body::before {
 #header-logo span { font-size:1.5rem; }
 #header-actions { display:flex; align-items:center; gap:.5rem; }
 .icon-btn {
-  width:38px; height:38px; border-radius:var(--radius-sm);
+  width:34px; height:34px; border-radius:var(--radius-sm); /* ← taille boutons header */
   display:flex; align-items:center; justify-content:center;
   color:var(--text2); background:var(--bg3); border:1px solid var(--border);
-  font-size:1.1rem; transition: all var(--transition);
+  font-size:1rem; transition: all var(--transition);
 }
 .icon-btn:hover { color:var(--accent); border-color:var(--accent); background:var(--accent-bg); }
 #btn-back {
   display:none; align-items:center; gap:.4rem;
-  padding:.4rem .8rem; border-radius:var(--radius-sm);
+  padding:.35rem .75rem; border-radius:var(--radius-sm);
   background:var(--bg3); border:1px solid var(--border);
   color:var(--text2); font-size:.85rem; transition:all var(--transition);
 }
 #btn-back:hover { color:var(--text); border-color:var(--border2); }
 #btn-back.visible { display:flex; }
+/* ─── Boutons scroll fiche ───────────────────────────────────────── */
+.fiche-scroll-btn {
+  width:32px; height:32px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border2);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:var(--shadow); color:var(--text2); font-size:.9rem;
+  cursor:pointer; transition:all var(--transition);
+}
+.fiche-scroll-btn:hover { color:var(--accent); border-color:var(--accent); background:var(--accent-bg); }
 
 /* ─── Pages ──────────────────────────────────────────────────────── */
 .page { display:none; flex:1; }
@@ -490,15 +504,14 @@ body::before {
 
 /* ─── Toast ──────────────────────────────────────────────────────── */
 #toast {
-  position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(150%);
+  position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(120%);
   background:var(--surface); border:1px solid var(--border2);
   border-radius:var(--radius-sm); padding:.6rem 1.2rem;
   font-size:.88rem; color:var(--text); box-shadow:var(--shadow);
-  z-index:300; pointer-events:none; opacity:0;
-  transition:transform .3s cubic-bezier(.4,0,.2,1), opacity .25s;
+  z-index:300; transition:transform .3s cubic-bezier(.4,0,.2,1);
   white-space:nowrap;
 }
-#toast.show { transform:translateX(-50%) translateY(0); opacity:1; pointer-events:auto; }
+#toast.show { transform:translateX(-50%) translateY(0); }
 
 /* ─── Zoom selector dans modal ───────────────────────────────────── */
 .zoom-grid {
@@ -544,29 +557,29 @@ body::before {
 .parties-section { margin-top:1.25rem; }
 .partie-card {
   background:var(--bg2); border:1px solid var(--border);
-  border-radius:var(--radius-sm); padding:.75rem 1rem;
-  display:flex; flex-direction:column; gap:.45rem;
+  border-radius:var(--radius-sm); padding:.85rem 1rem;
+  display:flex; align-items:center; gap:.75rem;
   transition:all var(--transition); cursor:pointer;
   margin-bottom:.5rem;
 }
 .partie-card:hover { border-color:var(--border2); }
-.partie-card-row1 { display:flex; align-items:flex-start; gap:.5rem; }
+.partie-card-info { flex:1; min-width:0; }
 .partie-card-titre {
-  flex:1; min-width:0; font-weight:500; font-size:.88rem; line-height:1.35;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  font-weight:500; font-size:.9rem;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.partie-card-row2 { display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
-.partie-card-meta { font-size:.75rem; color:var(--text3); }
+.partie-card-meta { font-size:.75rem; color:var(--text3); margin-top:.15rem; }
+.partie-card-actions { display:flex; gap:.4rem; flex-shrink:0; }
 .partie-btn-continuer {
-  padding:.35rem .75rem; border-radius:var(--radius-sm);
+  padding:.35rem .7rem; border-radius:var(--radius-sm);
   background:var(--accent-bg); color:var(--accent); border:1px solid var(--accent);
-  font-size:.78rem; font-weight:500; transition:all var(--transition); white-space:nowrap; flex-shrink:0;
+  font-size:.78rem; font-weight:500; transition:all var(--transition);
 }
 .partie-btn-continuer:hover { background:var(--accent); color:var(--bg); }
 .partie-btn-del {
-  width:26px; height:26px; border-radius:50%; flex-shrink:0;
+  width:28px; height:28px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
-  color:var(--text3); font-size:.82rem; transition:all var(--transition);
+  color:var(--text3); font-size:.85rem; transition:all var(--transition);
 }
 .partie-btn-del:hover { color:var(--red); background:rgba(224,85,85,.1); }
 @media(min-width:600px) {
@@ -674,6 +687,16 @@ body::before {
 
 <!-- Toast -->
 <div id="toast"></div>
+
+<!-- Boutons scroll fiche -->
+<button id="fiche-btn-down" class="fiche-scroll-btn"
+  style="display:none;position:fixed;top:3.75rem;right:.8rem;z-index:50"
+  onclick="document.getElementById('page-fiche').scrollTo({top:document.getElementById('page-fiche').scrollHeight,behavior:'smooth'})"
+  title="Fin de page">↓</button>
+<button id="fiche-btn-up" class="fiche-scroll-btn"
+  style="display:none;position:fixed;bottom:1.5rem;right:.8rem;z-index:50"
+  onclick="document.getElementById('page-fiche').scrollTo({top:0,behavior:'smooth'})"
+  title="Début de page">↑</button>
 
 <!-- Bannière mise à jour -->
 <div id="update-banner" style="
@@ -1043,9 +1066,15 @@ window.goTo = function(page, jeuId=null) {
   document.getElementById('page-'+page).classList.add('active');
   state.page = page;
   state.jeuId = jeuId || state.jeuId;
-  const btnBack      = document.getElementById('btn-back');
-  const btnRegles    = document.getElementById('btn-regles-jeu');
-  const logo         = document.getElementById('header-logo');
+  const btnBack   = document.getElementById('btn-back');
+  const btnRegles = document.getElementById('btn-regles-jeu');
+  const logo      = document.getElementById('header-logo');
+  const header    = document.getElementById('header');
+  const ficheD    = page === 'fiche' ? 'flex' : 'none';
+  document.getElementById('fiche-btn-down').style.display = ficheD;
+  document.getElementById('fiche-btn-up').style.display   = ficheD;
+  // Révéler le header en quittant le jeu
+  header.classList.remove('header-collapsed');
   if (page === 'catalogue') {
     btnBack.classList.remove('visible');
     btnRegles.style.display = 'none';
@@ -1131,21 +1160,12 @@ function renderFiche(m) {
 const COULEURS_AVATAR = ['#e8c560','#4ecdc4','#e05580','#7c6cf0','#e87840','#4caf7d','#e05555','#38b2aa'];
 const AVATARS_EMOJI = ['🦁','🐯','🦊','🐺','🐱','🐶','🐸','🐷','🐰','🐼','🐨'];
 
-// Pioche un avatar au hasard parmi ceux pas encore utilisés
-function _pickAvatar(usedAvatars=[]) {
-  const available = AVATARS_EMOJI.filter(a => !usedAvatars.includes(a));
-  const pool = available.length > 0 ? available : AVATARS_EMOJI;
-  return pool[Math.floor(Math.random() * pool.length)];
-}
-
 window.ouvrirSetup = function(id) {
   state.module = loadModule(id);
   state.jeuId = id;
-  const a1 = _pickAvatar();
-  const a2 = _pickAvatar([a1]);
   state.joueurs = [
-    { id:1, nom:'Joueur 1', avatar: a1 },
-    { id:2, nom:'Joueur 2', avatar: a2 },
+    { id:1, nom:'Joueur 1', avatar: AVATARS_EMOJI[0] },
+    { id:2, nom:'Joueur 2', avatar: AVATARS_EMOJI[1] },
   ];
   renderSetup();
   goTo('setup', id);
@@ -1195,8 +1215,7 @@ window.cycleAvatar = function(i) {
 };
 window.ajouterJoueur = function() {
   const i = state.joueurs.length;
-  const usedAvatars = state.joueurs.map(j => j.avatar);
-  state.joueurs.push({ id:Date.now(), nom:`Joueur ${i+1}`, avatar: _pickAvatar(usedAvatars) });
+  state.joueurs.push({ id:Date.now(), nom:`Joueur ${i+1}`, avatar:AVATARS_EMOJI[i%AVATARS_EMOJI.length] });
   renderSetup();
 };
 window.supprimerJoueur = function(i) {
@@ -1763,14 +1782,14 @@ function renderPartiesSauvegardees() {
   if (liste.length === 0) { section.style.display='none'; return; }
   section.style.display = 'block';
   list.innerHTML = liste.map(p => `
-    <div class="partie-card" onclick="reprendrePartie('${p.id}')">
-      <div class="partie-card-row1">
+    <div class="partie-card">
+      <div class="partie-card-info" onclick="reprendrePartie('${p.id}')">
         <div class="partie-card-titre">${p.nom}</div>
-        <button class="partie-btn-del" onclick="supprimerPartie('${p.id}',event)" title="Supprimer">✕</button>
-      </div>
-      <div class="partie-card-row2">
         <div class="partie-card-meta">${_dateRelative(p.date)}</div>
+      </div>
+      <div class="partie-card-actions">
         <button class="partie-btn-continuer" onclick="reprendrePartie('${p.id}')">▶ Continuer</button>
+        <button class="partie-btn-del" onclick="supprimerPartie('${p.id}',event)" title="Supprimer">✕</button>
       </div>
     </div>
   `).join('');
@@ -1793,6 +1812,21 @@ window.reprendrePartie = function(id) {
 
 window.supprimerPartie = function(id, e) {
   e.stopPropagation();
+  const row2 = e.target.closest('.partie-card')?.querySelector('.partie-card-row2');
+  if (!row2 || row2.dataset.confirming) return;
+  row2.dataset.confirming = 'true';
+  row2.innerHTML = `
+    <span style="font-size:.8rem;color:var(--text2)">Vraiment supprimer ?</span>
+    <div style="display:flex;gap:.4rem;flex-shrink:0">
+      <button class="partie-btn-continuer"
+              style="background:var(--bg3);color:var(--text2);border-color:var(--border)"
+              onclick="event.stopPropagation();renderPartiesSauvegardees()">Annuler</button>
+      <button class="partie-btn-continuer"
+              style="background:rgba(224,85,85,.1);color:var(--red);border-color:var(--red)"
+              onclick="event.stopPropagation();_confirmerSuppression('${id}')">Supprimer</button>
+    </div>`;
+};
+window._confirmerSuppression = function(id) {
   const parties = _getParties();
   delete parties[id];
   localStorage.setItem('ar-parties', JSON.stringify(parties));
@@ -1870,6 +1904,17 @@ window.setZoom = function(zoom) {
   setZoom(zoom);
   renderCatalogue();
   renderPartiesSauvegardees();
+
+  // Header auto-masqué en jeu au scroll vers le bas, révélé au scroll vers le haut
+  let lastScrollJeu = 0;
+  document.getElementById('page-jeu').addEventListener('scroll', function() {
+    if (state.page !== 'jeu') return;
+    const y = this.scrollTop;
+    const hdr = document.getElementById('header');
+    if (y > lastScrollJeu && y > 50) hdr.classList.add('header-collapsed');
+    else if (y < lastScrollJeu)      hdr.classList.remove('header-collapsed');
+    lastScrollJeu = Math.max(0, y);
+  }, { passive: true });
 })();
 </script>
 </body>
