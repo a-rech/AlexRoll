@@ -64,9 +64,13 @@
 [data-theme="indigo"]{ --accent:#7c6cf0; --accent2:#6055d0; --accent-bg:rgba(124,108,240,.12); }
 [data-theme="feu"]   { --accent:#e87840; --accent2:#d06020; --accent-bg:rgba(232,120,64,.12); }
 
-/* ─── Reset & Base ───────────────────────────────────────────────── */
-*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
-html { scroll-behavior:smooth; }
+/* ─── Zoom global ────────────────────────────────────────────────── */
+html { scroll-behavior:smooth; font-size: var(--zoom-size, 16px); }
+[data-zoom="xs"] { --zoom-size: 13px; }
+[data-zoom="sm"] { --zoom-size: 14.5px; }
+[data-zoom="md"] { --zoom-size: 16px; }
+[data-zoom="lg"] { --zoom-size: 18px; }
+[data-zoom="xl"] { --zoom-size: 20px; }
 body {
   font-family: var(--font-body);
   background: var(--bg);
@@ -478,7 +482,75 @@ body::before {
 }
 #toast.show { transform:translateX(-50%) translateY(0); }
 
-/* ─── Responsive ─────────────────────────────────────────────────── */
+/* ─── Zoom selector dans modal ───────────────────────────────────── */
+.zoom-grid {
+  display:flex; gap:.4rem; margin-bottom:1.25rem;
+}
+.zoom-btn {
+  flex:1; padding:.5rem .3rem; border-radius:var(--radius-sm);
+  border:1px solid var(--border); background:var(--bg3);
+  color:var(--text2); transition:all var(--transition);
+  display:flex; flex-direction:column; align-items:center; gap:.15rem;
+  cursor:pointer; font-family:inherit;
+}
+.zoom-btn .zoom-letter { font-family:var(--font-display); font-weight:700; line-height:1; }
+.zoom-btn .zoom-label  { font-size:.62rem; color:var(--text3); }
+.zoom-btn.active { background:var(--accent-bg); border-color:var(--accent); color:var(--accent); }
+.zoom-btn.active .zoom-label { color:var(--accent); }
+
+/* ─── Panel règles en jeu ────────────────────────────────────────── */
+#regles-panel {
+  position:fixed; inset:0; z-index:150;
+  background:var(--bg); overflow-y:auto;
+  display:none; flex-direction:column;
+}
+#regles-panel.open { display:flex; }
+.regles-panel-header {
+  position:sticky; top:0; z-index:10;
+  display:flex; align-items:center; gap:.75rem;
+  padding:.85rem 1.25rem; border-bottom:1px solid var(--border);
+  background:var(--bg);
+}
+.regles-panel-title { font-family:var(--font-display); font-size:1rem; font-weight:700; flex:1; }
+.btn-reprendre {
+  display:flex; align-items:center; gap:.4rem;
+  padding:.4rem .85rem; border-radius:var(--radius-sm);
+  background:var(--accent); color:var(--bg);
+  font-size:.82rem; font-weight:500; white-space:nowrap;
+  transition:all var(--transition);
+}
+.btn-reprendre:hover { filter:brightness(1.08); }
+.regles-panel-body { padding:1.25rem; max-width:700px; margin:0 auto; width:100%; padding-bottom:3rem; }
+
+/* ─── Parties sauvegardées ───────────────────────────────────────── */
+.parties-section { margin-top:1.25rem; }
+.partie-card {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:.85rem 1rem;
+  display:flex; align-items:center; gap:.75rem;
+  transition:all var(--transition); cursor:pointer;
+  margin-bottom:.5rem;
+}
+.partie-card:hover { border-color:var(--border2); }
+.partie-card-info { flex:1; min-width:0; }
+.partie-card-titre {
+  font-weight:500; font-size:.9rem;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.partie-card-meta { font-size:.75rem; color:var(--text3); margin-top:.15rem; }
+.partie-card-actions { display:flex; gap:.4rem; flex-shrink:0; }
+.partie-btn-continuer {
+  padding:.35rem .7rem; border-radius:var(--radius-sm);
+  background:var(--accent-bg); color:var(--accent); border:1px solid var(--accent);
+  font-size:.78rem; font-weight:500; transition:all var(--transition);
+}
+.partie-btn-continuer:hover { background:var(--accent); color:var(--bg); }
+.partie-btn-del {
+  width:28px; height:28px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--text3); font-size:.85rem; transition:all var(--transition);
+}
+.partie-btn-del:hover { color:var(--red); background:rgba(224,85,85,.1); }
 @media(min-width:600px) {
   #header { padding:1rem 2rem; }
   .fiche-container, .setup-container { padding:2rem 2rem 4rem; }
@@ -499,6 +571,7 @@ body::before {
       <span>🃏</span> AlexRoll 
     </div>
     <div id="header-actions">
+      <button class="icon-btn" id="btn-regles-jeu" onclick="ouvrirReglesPanel()" title="Règles" aria-label="Voir les règles" style="display:none">📖</button>
       <button class="icon-btn" onclick="openThemeModal()" title="Thème" aria-label="Changer le thème">🎨</button>
     </div>
   </header>
@@ -508,6 +581,11 @@ body::before {
     <div class="catalogue-hero">
       <h2>AlexRoll</h2>
       <p>Choisissez votre jeu et lancez la partie</p>
+    </div>
+    <!-- Parties en cours -->
+    <div id="parties-section" style="padding:0 1.25rem;display:none">
+      <div class="fiche-section-title" style="margin-bottom:.6rem">▶ Parties en cours</div>
+      <div id="parties-list"></div>
     </div>
     <div class="catalogue-filters">
       <button class="filter-btn active" data-filter="tous" onclick="filtrerJeux(this,'tous')">Tous</button>
@@ -534,6 +612,20 @@ body::before {
 
 </div>
 
+<!-- Panel règles en jeu -->
+<div id="regles-panel">
+  <div class="regles-panel-header">
+    <button class="icon-btn" onclick="fermerReglesPanel()" style="flex-shrink:0">←</button>
+    <div class="regles-panel-title" id="regles-panel-titre">Règles</div>
+    <button class="btn-reprendre" id="btn-reprendre-partie" onclick="fermerReglesPanel()" style="display:none">
+      ▶ Reprendre
+    </button>
+  </div>
+  <div class="regles-panel-body">
+    <div id="regles-panel-content" class="regles-content"></div>
+  </div>
+</div>
+
 <!-- Modal Thème -->
 <div class="modal-overlay" id="theme-modal" onclick="closeThemeModal(event)">
   <div class="modal-sheet">
@@ -550,6 +642,14 @@ body::before {
     <div class="mode-toggle">
       <button class="mode-btn active" id="mode-dark-btn"  onclick="setMode('dark')">🌙 Sombre</button>
       <button class="mode-btn"        id="mode-light-btn" onclick="setMode('light')">☀️ Clair</button>
+    </div>
+    <div class="modal-section-label" style="margin-top:1rem">Taille du texte</div>
+    <div class="zoom-grid">
+      <button class="zoom-btn" data-zoom="xs" onclick="setZoom('xs')"><span class="zoom-letter" style="font-size:.8rem">A</span><span class="zoom-label">Petit</span></button>
+      <button class="zoom-btn" data-zoom="sm" onclick="setZoom('sm')"><span class="zoom-letter" style="font-size:.95rem">A</span><span class="zoom-label">Réduit</span></button>
+      <button class="zoom-btn active" data-zoom="md" onclick="setZoom('md')"><span class="zoom-letter" style="font-size:1.1rem">A</span><span class="zoom-label">Normal</span></button>
+      <button class="zoom-btn" data-zoom="lg" onclick="setZoom('lg')"><span class="zoom-letter" style="font-size:1.25rem">A</span><span class="zoom-label">Grand</span></button>
+      <button class="zoom-btn" data-zoom="xl" onclick="setZoom('xl')"><span class="zoom-letter" style="font-size:1.4rem">A</span><span class="zoom-label">XL</span></button>
     </div>
   </div>
 </div>
@@ -810,23 +910,30 @@ window.goTo = function(page, jeuId=null) {
   document.getElementById('page-'+page).classList.add('active');
   state.page = page;
   state.jeuId = jeuId || state.jeuId;
-  const btnBack = document.getElementById('btn-back');
-  const logo = document.getElementById('header-logo');
+  const btnBack      = document.getElementById('btn-back');
+  const btnRegles    = document.getElementById('btn-regles-jeu');
+  const logo         = document.getElementById('header-logo');
   if (page === 'catalogue') {
     btnBack.classList.remove('visible');
-    logo.style.display='flex';
+    btnRegles.style.display = 'none';
+    logo.style.display = 'flex';
+    renderPartiesSauvegardees();
   } else {
     btnBack.classList.add('visible');
     document.getElementById('btn-back-label').textContent =
       page==='fiche' ? 'Catalogue' : page==='setup' ? state.module?.nom||'' : state.module?.nom||'';
-    logo.style.display='none';
+    logo.style.display = 'none';
+    btnRegles.style.display = page==='jeu' ? 'flex' : 'none';
   }
   window.scrollTo(0,0);
 };
 window.goBack = function() {
   if (state.page==='fiche') goTo('catalogue');
   else if (state.page==='setup') goTo('fiche', state.jeuId);
-  else if (state.page==='jeu') { if(confirm('Abandonner la partie ?')) goTo('fiche', state.jeuId); }
+  else if (state.page==='jeu') {
+    sauvegarderPartie();
+    goTo('catalogue');
+  }
 };
 
 // ─── Catalogue ────────────────────────────────────────────────────
@@ -962,8 +1069,10 @@ window.updateDemarrerBtn = function() {
 window.demarrerPartie = function() {
   const joueurs = state.joueurs.map((j,i) => ({ ...j, couleur: COULEURS_AVATAR[i] }));
   state.jeuState = state.module.init(joueurs);
+  state.partieId = 'partie_' + Date.now();
   goTo('jeu', state.jeuId);
   renderJeu();
+  sauvegarderPartie();
 };
 
 // ─── Moteur de rendu jeu ──────────────────────────────────────────
@@ -1087,6 +1196,8 @@ window.inscrireYams = function(ligneId) {
   const score = state.module.getScorePossible(state.jeuState, ligneId);
   state.jeuState = state.module.inscrireScore(state.jeuState, ligneId);
   toast(`Inscrit : ${score} pt${score>1?'s':''}`, 1800);
+  if (state.jeuState.phase === 'fin') _supprimerPartieSauvegardee();
+  else sauvegarderPartie();
   renderYams();
 };
 
@@ -1208,8 +1319,18 @@ window.validerTour421 = function() {
 };
 window.appliquerResultat421 = function() {
   state.jeuState = state.module.appliquerResultatTour(state.jeuState);
+  if (state.jeuState.phase === 'fin') _supprimerPartieSauvegardee();
+  else sauvegarderPartie();
   render421();
 };
+
+function _supprimerPartieSauvegardee() {
+  if (!state.partieId) return;
+  const parties = _getParties();
+  delete parties[state.partieId];
+  localStorage.setItem('ar-parties', JSON.stringify(parties));
+  state.partieId = null;
+}
 
 // ─── BATAILLE ─────────────────────────────────────────────────────
 function renderBataille() {
@@ -1326,6 +1447,114 @@ function renderFin() {
   `;
 }
 
+// ─── Sauvegarde des parties ───────────────────────────────────────
+function _serializeState(s) {
+  // Les fonctions calc() ne sont pas sérialisables — on ne stocke que les données pures
+  try { return JSON.stringify(s); } catch(e) { return null; }
+}
+
+window.sauvegarderPartie = function() {
+  if (!state.jeuState || !state.partieId || state.jeuState.phase === 'fin') return;
+  const parties = _getParties();
+  const joueurs = state.jeuState.joueurs || [];
+  const nomJoueurs = joueurs.map(j=>j.nom).join(', ');
+  const serialized = _serializeState(state.jeuState);
+  if (!serialized) return;
+  parties[state.partieId] = {
+    id:       state.partieId,
+    jeuId:    state.jeuId,
+    nom:      `${state.module.emoji} ${state.module.nom} — ${nomJoueurs}`,
+    date:     Date.now(),
+    jeuState: serialized,
+    joueurs:  JSON.stringify(state.jeuState.joueurs.map(j=>({id:j.id,nom:j.nom,avatar:j.avatar,couleur:j.couleur}))),
+  };
+  localStorage.setItem('ar-parties', JSON.stringify(parties));
+};
+
+function _getParties() {
+  try { return JSON.parse(localStorage.getItem('ar-parties') || '{}'); } catch(e) { return {}; }
+}
+
+function _dateRelative(ts) {
+  const diff = Date.now() - ts;
+  if (diff < 60000)   return 'À l\'instant';
+  if (diff < 3600000) return `Il y a ${Math.floor(diff/60000)} min`;
+  if (diff < 86400000)return `Il y a ${Math.floor(diff/3600000)} h`;
+  return new Date(ts).toLocaleDateString('fr-FR', {day:'numeric',month:'short'});
+}
+
+function renderPartiesSauvegardees() {
+  const parties = _getParties();
+  const liste   = Object.values(parties).sort((a,b) => b.date - a.date);
+  const section = document.getElementById('parties-section');
+  const list    = document.getElementById('parties-list');
+  if (!section || !list) return;
+  if (liste.length === 0) { section.style.display='none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = liste.map(p => `
+    <div class="partie-card">
+      <div class="partie-card-info" onclick="reprendrePartie('${p.id}')">
+        <div class="partie-card-titre">${p.nom}</div>
+        <div class="partie-card-meta">${_dateRelative(p.date)}</div>
+      </div>
+      <div class="partie-card-actions">
+        <button class="partie-btn-continuer" onclick="reprendrePartie('${p.id}')">▶ Continuer</button>
+        <button class="partie-btn-del" onclick="supprimerPartie('${p.id}',event)" title="Supprimer">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.reprendrePartie = function(id) {
+  const parties = _getParties();
+  const p = parties[id];
+  if (!p) return;
+  state.module  = loadModule(p.jeuId);
+  state.jeuId   = p.jeuId;
+  state.partieId = p.id;
+  // Restaurer le jeuState (sans les fonctions calc, on les réattache via le module)
+  try {
+    state.jeuState = JSON.parse(p.jeuState);
+  } catch(e) { toast('Erreur de chargement'); return; }
+  goTo('jeu', p.jeuId);
+  renderJeu();
+};
+
+window.supprimerPartie = function(id, e) {
+  e.stopPropagation();
+  const parties = _getParties();
+  delete parties[id];
+  localStorage.setItem('ar-parties', JSON.stringify(parties));
+  renderPartiesSauvegardees();
+};
+
+// Sauvegarde auto toutes les 30s quand une partie est en cours
+setInterval(() => { if (state.page==='jeu') sauvegarderPartie(); }, 30000);
+
+// ─── Panel Règles en jeu ──────────────────────────────────────────
+window.ouvrirReglesPanel = function() {
+  const panel = document.getElementById('regles-panel');
+  document.getElementById('regles-panel-titre').textContent =
+    `${state.module?.emoji||''} Règles — ${state.module?.nom||''}`;
+  document.getElementById('regles-panel-content').innerHTML =
+    state.module?.regles || '';
+  // Bouton reprendre visible si partie en cours
+  const btnReprendre = document.getElementById('btn-reprendre-partie');
+  btnReprendre.style.display = state.jeuState && state.jeuState.phase !== 'fin' ? 'flex' : 'none';
+  panel.classList.add('open');
+  panel.scrollTop = 0;
+};
+
+window.fermerReglesPanel = function() {
+  document.getElementById('regles-panel').classList.remove('open');
+};
+
+// Aussi accessible depuis la fiche jeu sans partie en cours
+window.ouvrirReglesFiche = function(id) {
+  state.module = loadModule(id);
+  ouvrirReglesPanel();
+};
+
 // ─── Toast ────────────────────────────────────────────────────────
 let toastTimer;
 window.toast = function(msg, duration=2000) {
@@ -1354,13 +1583,22 @@ window.setMode = function(mode) {
   localStorage.setItem('ar-mode', mode);
 };
 
+window.setZoom = function(zoom) {
+  document.documentElement.dataset.zoom = zoom;
+  document.querySelectorAll('.zoom-btn').forEach(b => b.classList.toggle('active', b.dataset.zoom===zoom));
+  localStorage.setItem('ar-zoom', zoom);
+};
+
 // ─── Init ─────────────────────────────────────────────────────────
 (function init() {
   const theme = localStorage.getItem('ar-theme') || 'or';
   const mode  = localStorage.getItem('ar-mode')  || 'dark';
+  const zoom  = localStorage.getItem('ar-zoom')  || 'md';
   setTheme(theme);
   setMode(mode);
+  setZoom(zoom);
   renderCatalogue();
+  renderPartiesSauvegardees();
 })();
 </script>
 </body>
