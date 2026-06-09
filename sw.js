@@ -1,5 +1,5 @@
 // ─── Service Worker — AlexRoll ───────────────────────────────────
-const CACHE_NAME = 'alexroll-v1.2';
+const CACHE_NAME = 'alexroll-v1.2.1';
 const CACHE_ASSETS = [
   './',
   './index.html',
