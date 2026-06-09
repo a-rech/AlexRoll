@@ -1,4 +1,4 @@
-# 🎴 AlexRoll — Jeux de Soirée
+# 🃏 AlexRoll — Jeux de Soirée
 
 > PWA de jeux de cartes et de dés pour jouer entre amis, directement depuis le téléphone.
 
