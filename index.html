@@ -329,25 +329,27 @@ body::before {
 .des-titre { font-size:.7rem; text-transform:uppercase; letter-spacing:.12em; color:var(--accent); margin-bottom:.9rem; }
 .des-grid { display:flex; gap:.6rem; justify-content:center; flex-wrap:wrap; }
 .de {
-  width:60px; height:60px; border-radius:10px;
+  width:120px; height:120px; border-radius:16px;   /* ← taille des dés : changer ici */
   background:var(--surface); border:2px solid var(--border2);
   display:flex; align-items:center; justify-content:center;
-  font-family:var(--font-display); font-size:1.6rem; font-weight:700;
+  font-family:var(--font-display); font-size:3.2rem; font-weight:700; /* ← taille de la face */
   cursor:pointer; transition:all var(--transition);
   user-select:none; position:relative;
 }
 .de:hover { border-color:var(--accent); }
 .de.garde {
   background:var(--accent-bg); border-color:var(--accent); color:var(--accent);
-  box-shadow:0 0 12px rgba(232,197,96,.2);
+  box-shadow:0 0 16px rgba(232,197,96,.25);
 }
 .de.garde::after {
-  content:'✓'; position:absolute; top:-6px; right:-6px;
-  width:16px; height:16px; border-radius:50%;
+  content:'✓'; position:absolute; top:-8px; right:-8px;
+  width:22px; height:22px; border-radius:50%;
   background:var(--accent); color:var(--bg);
-  font-size:.6rem; display:flex; align-items:center; justify-content:center;
+  font-size:.7rem; display:flex; align-items:center; justify-content:center;
   font-family:var(--font-body);
 }
+.de.unrolled { color:var(--text3); border-style:dashed; font-family:var(--font-body); font-size:2.2rem; cursor:default; }
+.de.unrolled:hover { border-color:var(--border2); }
 .de.roll-anim { animation:rollDe .3s ease; }
 @keyframes rollDe { 0%{transform:scale(.8) rotate(-10deg);} 60%{transform:scale(1.1) rotate(5deg);} 100%{transform:scale(1) rotate(0);} }
 .des-actions { display:flex; gap:.75rem; align-items:center; margin-top:1rem; flex-wrap:wrap; }
@@ -437,6 +439,21 @@ body::before {
   transition:all var(--transition); display:inline-block;
 }
 .btn-rejouer:hover { filter:brightness(1.08); }
+
+/* ─── Scores ChoupiSteak ─────────────────────────────────────────── */
+.scores-cs-grid{display:flex;flex-direction:column;gap:.45rem;}
+.score-cs-row{display:grid;grid-template-columns:minmax(80px,1fr) 2fr minmax(42px,auto);align-items:center;gap:.55rem;padding:.3rem .4rem;border-radius:var(--radius-sm);transition:background var(--transition);}
+.score-cs-row.actif{background:var(--accent-bg);}
+.score-cs-joueur{font-size:.82rem;display:flex;align-items:center;gap:.3rem;overflow:hidden;}
+.score-cs-joueur span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.score-cs-bar-wrap{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden;}
+.score-cs-bar{height:100%;border-radius:4px;transition:width .4s cubic-bezier(.4,0,.2,1);min-width:2px;}
+.score-cs-val{font-size:.85rem;font-weight:600;font-family:var(--font-display);text-align:right;}
+/* ─── Combo live ─────────────────────────────────────────────────── */
+.combo-live{margin-top:.85rem;padding:.6rem .9rem;border-radius:var(--radius-sm);border-left:3px solid var(--accent);background:var(--bg3);font-size:.84rem;display:flex;flex-wrap:wrap;align-items:center;gap:.3rem;}
+.combo-live.combo-attente{border-left-color:var(--border2);color:var(--text3);}
+.combo-label{font-weight:500;}
+.combo-penalty{color:var(--red);font-size:.8rem;}
 
 /* ─── Modal Thème ────────────────────────────────────────────────── */
 .modal-overlay {
@@ -883,6 +900,121 @@ bataille: {
     state.phase=actifs.length<2?'fin':'jouer';
     return{...state};
   }
+},
+
+choupisteak: {
+  id:'choupisteak', nom:'ChoupiSteak', emoji:'🥩', type:'dés', joueursMin:2, joueursMax:6,
+  description:'Réalisez des combinaisons avec 4 dés en 3 lancers. Les carrés de 1/2/3 pénalisent vos adversaires !',
+  regles:`<h3>But du jeu</h3><p>Accumuler des points tour par tour. Dès qu'un joueur atteint 600 pts, chacun joue un dernier tour — le score le plus haut l'emporte !</p><h3>Déroulement d'un tour</h3><ol><li>Lancez les 4 dés (1<sup>er</sup> lancer obligatoire).</li><li>Cliquez les dés à conserver, relancez les autres (2 relances max).</li><li>Validez quand vous êtes satisfait de votre combinaison.</li></ol><h3>Combinaisons</h3><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.83rem;margin:.5rem 0;text-align:center"><thead><tr><th style="text-align:left;padding:.35rem .5rem"></th><th style="color:var(--accent)">×1</th><th style="color:var(--accent)">×2</th><th style="color:var(--accent)">×3</th><th style="color:var(--accent)">×4</th><th style="color:var(--accent)">×5</th><th style="color:var(--accent)">×6</th></tr></thead><tbody><tr><td style="text-align:left;padding:.3rem .5rem;color:var(--text2)">Doubles</td><td>5</td><td>10</td><td>15</td><td>20</td><td>25</td><td>30</td></tr><tr><td style="text-align:left;padding:.3rem .5rem;color:var(--text2)">Triples</td><td>10</td><td>20</td><td>30</td><td>40</td><td>50</td><td>60</td></tr><tr><td style="text-align:left;padding:.3rem .5rem;color:var(--text2)">Carrés</td><td style="font-size:.78rem">+100<br><span style="color:var(--red)">−100</span></td><td style="font-size:.78rem">+50<br><span style="color:var(--red)">−50</span></td><td style="font-size:.78rem">+70<br><span style="color:var(--red)">−30</span></td><td>100</td><td>125</td><td>150</td></tr><tr><td style="text-align:left;padding:.3rem .5rem;color:var(--text2)">Suites</td><td colspan="3" style="color:var(--text3)">—</td><td>60</td><td>75</td><td>90</td></tr></tbody></table></div><h3>Règles spéciales</h3><ul><li>Deux doubles se <strong>cumulent</strong> (ex. paire de 2 + paire de 3 = 25 pts).</li><li>Les carrés de 1, 2 et 3 <strong>retirent des points</strong> à chaque adversaire.</li><li>Carré de 1 en un seul lancer = <strong>victoire instantanée !</strong></li><li>À 6 joueurs ou plus, la victoire est atteinte à <strong>360 pts</strong>.</li></ul><p style="font-size:.78rem;color:var(--text3);margin-top:1rem">Jeu inventé par Alexandre Rech</p>`,
+  scoreConfig:null,
+  state:null,
+
+  init(joueurs){
+    const seuil=joueurs.length>=6?360:600;
+    this.state={
+      joueurs:joueurs.map(j=>({...j,score:0})),
+      joueurActuel:0,
+      des:[1,1,1,1],
+      desGardes:[false,false,false,false],
+      lancesRestants:3,
+      phase:'lancer',
+      scoreActuel:null,
+      seuil,
+      mancheFinale:false,
+      joueurDeclencheur:-1,
+      gagnant:null,
+      victoireInstantanee:false
+    };
+    return this.state;
+  },
+
+  calculerScore(des){
+    const counts={};
+    for(let i=1;i<=6;i++) counts[i]=des.filter(d=>d===i).length;
+    // Instant win: carré de 1
+    if(counts[1]===4) return{points:100,penalite:100,penaliteLabel:'−100',label:'🎲🎲🎲🎲 Carré de 1 → +100',instantWin:true};
+    let points=0,penalite=0,penaliteLabel='';
+    const labels=[];
+    // Suite : 4 valeurs distinctes consécutives
+    const uniq=[...new Set(des)].sort((a,b)=>a-b);
+    if(uniq.length===4&&uniq[3]-uniq[0]===3){
+      const h=uniq[3];
+      if(h===4){points=60;labels.push('Suite 1-2-3-4 → 60 pts');}
+      else if(h===5){points=75;labels.push('Suite 2-3-4-5 → 75 pts');}
+      else if(h===6){points=90;labels.push('Suite 3-4-5-6 → 90 pts');}
+      return{points,penalite,penaliteLabel,label:labels[0]||'Suite',instantWin:false};
+    }
+    // Paires, triples, carrés (boucle pour cumuler les 2 paires)
+    for(let v=1;v<=6;v++){
+      const cnt=counts[v];
+      if(cnt===2){const pts=5*v;points+=pts;labels.push(`Paire de ${v} → ${pts} pts`);}
+      else if(cnt===3){const pts=10*v;points+=pts;labels.push(`Triple de ${v} → ${pts} pts`);}
+      else if(cnt===4){
+        if(v===2){points=50;penalite=50;penaliteLabel='−50';labels.push('Carré de 2 → +50 pts');}
+        else if(v===3){points=70;penalite=30;penaliteLabel='−30';labels.push('Carré de 3 → +70 pts');}
+        else if(v===4){points=100;labels.push('Carré de 4 → 100 pts');}
+        else if(v===5){points=125;labels.push('Carré de 5 → 125 pts');}
+        else if(v===6){points=150;labels.push('Carré de 6 → 150 pts');}
+      }
+    }
+    return{points,penalite,penaliteLabel,label:labels.length?labels.join(' + '):'Aucune combinaison → 0 pt',instantWin:false};
+  },
+
+  lancerDes(state){
+    if(state.lancesRestants<=0)return state;
+    state.des=state.des.map((d,i)=>state.desGardes[i]?d:Math.ceil(Math.random()*6));
+    state.lancesRestants--;
+    const sc=this.calculerScore(state.des);
+    state.scoreActuel=sc;
+    if(sc.instantWin){
+      const joueur=state.joueurs[state.joueurActuel];
+      joueur.score+=sc.points;
+      state.joueurs.forEach((j,i)=>{if(i!==state.joueurActuel)j.score-=sc.penalite;});
+      state.gagnant=joueur;
+      state.victoireInstantanee=true;
+      state.phase='fin';
+      return{...state};
+    }
+    state.phase='scorer';
+    return{...state};
+  },
+
+  toggleGarde(state,idx){
+    if(state.phase!=='scorer'||state.lancesRestants<=0)return state;
+    state.desGardes[idx]=!state.desGardes[idx];
+    return{...state};
+  },
+
+  validerTour(state){
+    const sc=state.scoreActuel;
+    if(!sc||state.phase!=='scorer')return state;
+    const joueur=state.joueurs[state.joueurActuel];
+    joueur.score+=sc.points;
+    if(sc.penalite>0) state.joueurs.forEach((j,i)=>{if(i!==state.joueurActuel)j.score-=sc.penalite;});
+    // Déclenchement fin de manche
+    if(joueur.score>=state.seuil&&!state.mancheFinale){
+      state.mancheFinale=true;
+      state.joueurDeclencheur=state.joueurActuel;
+    }
+    const nextIdx=(state.joueurActuel+1)%state.joueurs.length;
+    // Fin de manche : tout le monde a joué son dernier tour
+    if(state.mancheFinale&&nextIdx===state.joueurDeclencheur){
+      const au_seuil=state.joueurs.filter(j=>j.score>=state.seuil);
+      if(au_seuil.length===0){
+        // Les pénalités ont tout effacé → on continue
+        state.mancheFinale=false;state.joueurDeclencheur=-1;
+      } else {
+        state.phase='fin';
+        state.gagnant=au_seuil.reduce((max,j)=>j.score>max.score?j:max,au_seuil[0]);
+        state.joueurActuel=nextIdx;
+        return{...state};
+      }
+    }
+    state.joueurActuel=nextIdx;
+    state.des=[1,1,1,1];state.desGardes=[false,false,false,false];
+    state.lancesRestants=3;state.phase='lancer';state.scoreActuel=null;
+    return{...state};
+  }
 }
 
 }; // fin MODULES
@@ -1081,6 +1213,7 @@ window.renderJeu = function() {
   if (id==='yams') renderYams();
   else if (id==='421') render421();
   else if (id==='bataille') renderBataille();
+  else if (id==='choupisteak') renderChoupiSteak();
 };
 
 // ─── YAMS ─────────────────────────────────────────────────────────
@@ -1109,9 +1242,9 @@ function renderYams() {
       <div class="des-titre">🎲 Dés</div>
       <div class="des-grid">
         ${s.des.map((d,i) => `
-          <div class="de${s.desGardes[i]?' garde':''}" id="de-${i}"
+          <div class="de${s.desGardes[i]?' garde':''}${s.lancesRestants===3?' unrolled':''}" id="de-${i}"
                onclick="toggleDeYams(${i})" title="${s.desGardes[i]?'Relâcher':'Garder'}">
-            ${FACES[d]}
+            ${s.lancesRestants===3 ? '?' : FACES[d]}
           </div>
         `).join('')}
       </div>
@@ -1244,8 +1377,8 @@ function render421() {
       <div class="des-titre">🎲 Dés</div>
       <div class="des-grid">
         ${s.des.map((d,i) => `
-          <div class="de${s.desGardes[i]?' garde':''}" id="de421-${i}" onclick="toggleDe421(${i})">
-            ${FACES[d]}
+          <div class="de${s.desGardes[i]?' garde':''}${s.lancesRestants===3?' unrolled':''}" id="de421-${i}" onclick="toggleDe421(${i})">
+            ${s.lancesRestants===3 ? '?' : FACES[d]}
           </div>
         `).join('')}
       </div>
@@ -1407,6 +1540,116 @@ window.continuerBataille = function() {
   renderBataille();
 };
 
+// ─── CHOUPISTEAK ─────────────────────────────────────────────────
+function renderChoupiSteak(){
+  const s=state.jeuState;
+  if(s.phase==='fin'){renderFin();return;}
+  const FACES=['','⚀','⚁','⚂','⚃','⚄','⚅'];
+  const joueurAct=s.joueurs[s.joueurActuel];
+  const sc=s.scoreActuel;
+  const canToggle=s.phase==='scorer'&&s.lancesRestants>0;
+
+  let comboHTML;
+  if(s.phase==='scorer'&&sc){
+    comboHTML=`<div class="combo-live">
+      <span class="combo-label">${sc.label}</span>
+      ${sc.penalite>0?`<span class="combo-penalty">· ⬇ ${sc.penaliteLabel} pts / adversaire</span>`:''}
+    </div>`;
+  } else {
+    comboHTML=`<div class="combo-live combo-attente">Lancez les dés pour voir votre combinaison…</div>`;
+  }
+
+  document.getElementById('jeu-content').innerHTML=`
+    <div class="joueur-actuel-bar">
+      <div class="joueur-actuel-avatar" style="background:${joueurAct.couleur}">${joueurAct.avatar}</div>
+      <div class="joueur-actuel-info">
+        <div class="joueur-actuel-label">Tour de</div>
+        <div class="joueur-actuel-nom">${joueurAct.nom}</div>
+      </div>
+      <div class="tour-info">${s.mancheFinale?'⚠️ Dernier tour !':`${joueurAct.score} pts`}</div>
+    </div>
+
+    <div class="des-zone">
+      <div class="des-titre">📊 Scores <span style="font-size:.78em;color:var(--text3);font-family:var(--font-body);text-transform:none;letter-spacing:0">· objectif ${s.seuil} pts</span></div>
+      <div class="scores-cs-grid">
+        ${s.joueurs.map((j,i)=>{
+          const pct=Math.max(0,Math.min(100,Math.round(j.score/s.seuil*100)));
+          return`<div class="score-cs-row${i===s.joueurActuel?' actif':''}">
+            <div class="score-cs-joueur">${j.avatar}<span>${j.nom}</span></div>
+            <div class="score-cs-bar-wrap"><div class="score-cs-bar" style="width:${pct}%;background:${j.couleur}"></div></div>
+            <div class="score-cs-val" style="color:${j.score<0?'var(--red)':j.couleur}">${j.score}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="des-zone">
+      <div class="des-titre">🎲 Dés ${canToggle?`<span style="font-size:.78em;color:var(--text3);font-family:var(--font-body);text-transform:none;letter-spacing:0">· cliquer pour conserver</span>`:''}
+      </div>
+      <div class="des-grid">
+        ${s.des.map((d,i)=>`
+          <div class="de${s.desGardes[i]?' garde':''}${s.lancesRestants===3?' unrolled':''}" id="decs-${i}"
+               onclick="toggleDeCS(${i})"
+               style="${!canToggle&&s.lancesRestants!==3?'cursor:default':''}">${s.lancesRestants===3?'?':FACES[d]}</div>
+        `).join('')}
+      </div>
+      ${comboHTML}
+      <div class="des-actions">
+        ${s.lancesRestants>0?`
+          <button class="btn-lancer" onclick="lancerCS()">
+            🎲 ${s.lancesRestants===3?'Lancer':'Relancer'} (${s.lancesRestants})
+          </button>`:''}
+        ${s.phase==='scorer'?`
+          <button class="btn-lancer" style="background:var(--green);color:#fff" onclick="validerCS()">
+            ✓ Valider${sc&&sc.points>0?` +${sc.points} pts`:''}
+          </button>`:''}
+        <div>
+          <div style="font-size:.7rem;color:var(--text3);margin-bottom:3px">Lancers</div>
+          <div class="lances-dots">
+            ${[0,1,2].map(k=>`<div class="lances-dot${k>=s.lancesRestants?' used':''}"></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+window.lancerCS=function(){
+  state.jeuState=state.module.lancerDes(state.jeuState);
+  renderChoupiSteak();
+  // Animation sur les dés relancés (ajoutée après le rendu)
+  if(state.jeuState.phase==='scorer'){
+    state.jeuState.des.forEach((_,i)=>{
+      if(!state.jeuState.desGardes[i]){
+        const el=document.getElementById('decs-'+i);
+        if(el){el.classList.remove('roll-anim');void el.offsetWidth;el.classList.add('roll-anim');}
+      }
+    });
+  } else if(state.jeuState.phase==='fin'){
+    // Victoire instantanée : toast puis fin
+    toast('🎉 Carré de 1 ! Victoire instantanée !',3000);
+    _supprimerPartieSauvegardee();
+  }
+};
+
+window.toggleDeCS=function(i){
+  state.jeuState=state.module.toggleGarde(state.jeuState,i);
+  renderChoupiSteak();
+};
+
+window.validerCS=function(){
+  const sc=state.jeuState.scoreActuel;
+  const pts=sc?sc.points:0;
+  const pen=sc?sc.penalite:0;
+  state.jeuState=state.module.validerTour(state.jeuState);
+  let msg=pts>0?`+${pts} pts`:'0 pt';
+  if(pen>0) msg+=` · −${pen}/adversaire`;
+  toast(msg,2000);
+  if(state.jeuState.phase==='fin') _supprimerPartieSauvegardee();
+  else sauvegarderPartie();
+  renderChoupiSteak();
+};
+
 // ─── Fin de partie ────────────────────────────────────────────────
 function renderFin() {
   const s = state.jeuState;
@@ -1421,6 +1664,11 @@ function renderFin() {
   } else if (state.jeuId==='bataille') {
     gagnant = s.joueurs.reduce((max,j)=>j.main.length>max.main.length?j:max,s.joueurs[0]);
     message = `${gagnant.avatar} ${gagnant.nom} remporte la bataille !`;
+  } else if (state.jeuId==='choupisteak') {
+    gagnant = s.gagnant || s.joueurs.reduce((max,j)=>j.score>max.score?j:max,s.joueurs[0]);
+    message = s.victoireInstantanee
+      ? `${gagnant.avatar} ${gagnant.nom} réalise un carré de 1 — victoire instantanée ! 🎉`
+      : `${gagnant.avatar} ${gagnant.nom} gagne avec ${gagnant.score} pts !`;
   }
   document.getElementById('jeu-content').innerHTML = `
     <div class="fin-overlay">
@@ -1435,6 +1683,18 @@ function renderFin() {
               <span style="font-size:1.1rem">${j.avatar}</span>
               <span style="flex:1">${j.nom}</span>
               <strong style="color:var(--accent)">${j.total} pts</strong>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+      ${state.jeuId==='choupisteak' ? `
+        <div style="margin:1rem auto;text-align:left;max-width:300px">
+          ${[...s.joueurs].sort((a,b)=>b.score-a.score).map((j,i)=>`
+            <div style="display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid var(--border)">
+              <span style="font-size:1.1rem">${['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'][i]||''}</span>
+              <span style="font-size:1.1rem">${j.avatar}</span>
+              <span style="flex:1">${j.nom}</span>
+              <strong style="color:${j.score<0?'var(--red)':'var(--accent)'}">${j.score} pts</strong>
             </div>
           `).join('')}
         </div>
