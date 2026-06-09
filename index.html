@@ -332,7 +332,7 @@ body::before {
   width:90px; height:90px; border-radius:16px;   /* ← taille des dés : changer ici */
   background:var(--surface); border:2px solid var(--border2);
   display:flex; align-items:center; justify-content:center;
-  font-family:var(--font-display); font-size:4.2rem; font-weight:500; /* ← taille de la face */
+  font-family:var(--font-display); font-size:4.2rem; font-weight:300; /* ← taille de la face */
   cursor:pointer; transition:all var(--transition);
   user-select:none; position:relative;
 }
@@ -490,14 +490,15 @@ body::before {
 
 /* ─── Toast ──────────────────────────────────────────────────────── */
 #toast {
-  position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(120%);
+  position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(150%);
   background:var(--surface); border:1px solid var(--border2);
   border-radius:var(--radius-sm); padding:.6rem 1.2rem;
   font-size:.88rem; color:var(--text); box-shadow:var(--shadow);
-  z-index:300; transition:transform .3s cubic-bezier(.4,0,.2,1);
+  z-index:300; pointer-events:none; opacity:0;
+  transition:transform .3s cubic-bezier(.4,0,.2,1), opacity .25s;
   white-space:nowrap;
 }
-#toast.show { transform:translateX(-50%) translateY(0); }
+#toast.show { transform:translateX(-50%) translateY(0); opacity:1; pointer-events:auto; }
 
 /* ─── Zoom selector dans modal ───────────────────────────────────── */
 .zoom-grid {
@@ -543,29 +544,29 @@ body::before {
 .parties-section { margin-top:1.25rem; }
 .partie-card {
   background:var(--bg2); border:1px solid var(--border);
-  border-radius:var(--radius-sm); padding:.85rem 1rem;
-  display:flex; align-items:center; gap:.75rem;
+  border-radius:var(--radius-sm); padding:.75rem 1rem;
+  display:flex; flex-direction:column; gap:.45rem;
   transition:all var(--transition); cursor:pointer;
   margin-bottom:.5rem;
 }
 .partie-card:hover { border-color:var(--border2); }
-.partie-card-info { flex:1; min-width:0; }
+.partie-card-row1 { display:flex; align-items:flex-start; gap:.5rem; }
 .partie-card-titre {
-  font-weight:500; font-size:.9rem;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  flex:1; min-width:0; font-weight:500; font-size:.88rem; line-height:1.35;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
 }
-.partie-card-meta { font-size:.75rem; color:var(--text3); margin-top:.15rem; }
-.partie-card-actions { display:flex; gap:.4rem; flex-shrink:0; }
+.partie-card-row2 { display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+.partie-card-meta { font-size:.75rem; color:var(--text3); }
 .partie-btn-continuer {
-  padding:.35rem .7rem; border-radius:var(--radius-sm);
+  padding:.35rem .75rem; border-radius:var(--radius-sm);
   background:var(--accent-bg); color:var(--accent); border:1px solid var(--accent);
-  font-size:.78rem; font-weight:500; transition:all var(--transition);
+  font-size:.78rem; font-weight:500; transition:all var(--transition); white-space:nowrap; flex-shrink:0;
 }
 .partie-btn-continuer:hover { background:var(--accent); color:var(--bg); }
 .partie-btn-del {
-  width:28px; height:28px; border-radius:50%;
+  width:26px; height:26px; border-radius:50%; flex-shrink:0;
   display:flex; align-items:center; justify-content:center;
-  color:var(--text3); font-size:.85rem; transition:all var(--transition);
+  color:var(--text3); font-size:.82rem; transition:all var(--transition);
 }
 .partie-btn-del:hover { color:var(--red); background:rgba(224,85,85,.1); }
 @media(min-width:600px) {
@@ -1128,14 +1129,23 @@ function renderFiche(m) {
 
 // ─── Setup Joueurs ────────────────────────────────────────────────
 const COULEURS_AVATAR = ['#e8c560','#4ecdc4','#e05580','#7c6cf0','#e87840','#4caf7d','#e05555','#38b2aa'];
-const AVATARS_EMOJI = ['🦁','🐯','🦊','🐺','🦋','🐉','🦅','🎭'];
+const AVATARS_EMOJI = ['🦁','🐯','🦊','🐺','🐱','🐶','🐸','🐷','🐰','🐼','🐨'];
+
+// Pioche un avatar au hasard parmi ceux pas encore utilisés
+function _pickAvatar(usedAvatars=[]) {
+  const available = AVATARS_EMOJI.filter(a => !usedAvatars.includes(a));
+  const pool = available.length > 0 ? available : AVATARS_EMOJI;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
 
 window.ouvrirSetup = function(id) {
   state.module = loadModule(id);
   state.jeuId = id;
+  const a1 = _pickAvatar();
+  const a2 = _pickAvatar([a1]);
   state.joueurs = [
-    { id:1, nom:'Joueur 1', avatar: AVATARS_EMOJI[0] },
-    { id:2, nom:'Joueur 2', avatar: AVATARS_EMOJI[1] },
+    { id:1, nom:'Joueur 1', avatar: a1 },
+    { id:2, nom:'Joueur 2', avatar: a2 },
   ];
   renderSetup();
   goTo('setup', id);
@@ -1185,7 +1195,8 @@ window.cycleAvatar = function(i) {
 };
 window.ajouterJoueur = function() {
   const i = state.joueurs.length;
-  state.joueurs.push({ id:Date.now(), nom:`Joueur ${i+1}`, avatar:AVATARS_EMOJI[i%AVATARS_EMOJI.length] });
+  const usedAvatars = state.joueurs.map(j => j.avatar);
+  state.joueurs.push({ id:Date.now(), nom:`Joueur ${i+1}`, avatar: _pickAvatar(usedAvatars) });
   renderSetup();
 };
 window.supprimerJoueur = function(i) {
@@ -1752,14 +1763,14 @@ function renderPartiesSauvegardees() {
   if (liste.length === 0) { section.style.display='none'; return; }
   section.style.display = 'block';
   list.innerHTML = liste.map(p => `
-    <div class="partie-card">
-      <div class="partie-card-info" onclick="reprendrePartie('${p.id}')">
+    <div class="partie-card" onclick="reprendrePartie('${p.id}')">
+      <div class="partie-card-row1">
         <div class="partie-card-titre">${p.nom}</div>
-        <div class="partie-card-meta">${_dateRelative(p.date)}</div>
-      </div>
-      <div class="partie-card-actions">
-        <button class="partie-btn-continuer" onclick="reprendrePartie('${p.id}')">▶ Continuer</button>
         <button class="partie-btn-del" onclick="supprimerPartie('${p.id}',event)" title="Supprimer">✕</button>
+      </div>
+      <div class="partie-card-row2">
+        <div class="partie-card-meta">${_dateRelative(p.date)}</div>
+        <button class="partie-btn-continuer" onclick="reprendrePartie('${p.id}')">▶ Continuer</button>
       </div>
     </div>
   `).join('');
