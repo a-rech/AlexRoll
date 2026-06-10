@@ -562,8 +562,7 @@ body::before {
   background:var(--bg2); border:1px solid var(--border);
   border-radius:var(--radius-sm); padding:.75rem 1rem;
   display:flex; flex-direction:column; gap:.45rem;
-  transition:all var(--transition); cursor:pointer;
-  margin-bottom:.5rem;
+  transition:all var(--transition); cursor:pointer; margin-bottom:.5rem;
 }
 .partie-card:hover { border-color:var(--border2); }
 .partie-card-row1 { display:flex; align-items:flex-start; gap:.5rem; }
@@ -1071,16 +1070,13 @@ window.goTo = function(page, jeuId=null) {
   const btnRegles = document.getElementById('btn-regles-jeu');
   const logo      = document.getElementById('header-logo');
   const header    = document.getElementById('header');
-  // Header : masqué dès l'entrée en jeu, révélé partout ailleurs
-  if (page === 'jeu') {
-    header.classList.add('header-collapsed');
-  } else {
-    header.classList.remove('header-collapsed');
-  }
-  // Boutons scroll : visibles uniquement sur les fiches
-  const ficheD = page === 'fiche' ? 'flex' : 'none';
-  document.getElementById('fiche-btn-top').style.display = ficheD;
-  document.getElementById('fiche-btn-bot').style.display = ficheD;
+  // Header : masqué immédiatement en jeu, révélé partout ailleurs
+  if (page === 'jeu') header.classList.add('header-collapsed');
+  else                header.classList.remove('header-collapsed');
+  // Boutons scroll fiche
+  const d = page === 'fiche' ? 'flex' : 'none';
+  document.getElementById('fiche-btn-top').style.display = d;
+  document.getElementById('fiche-btn-bot').style.display = d;
   if (page === 'catalogue') {
     btnBack.classList.remove('visible');
     btnRegles.style.display = 'none';
@@ -1824,7 +1820,7 @@ window.supprimerPartie = function(id, e) {
   row2.dataset.confirming = 'true';
   row2.innerHTML =
     '<span style="font-size:.8rem;color:var(--text2)">Vraiment supprimer ?</span>' +
-    '<div style="display:flex;gap:.4rem;flex-shrink:0">' +
+    '<div style="display:flex;gap:.4rem">' +
       '<button class="partie-btn-continuer" style="background:var(--bg3);color:var(--text2);border-color:var(--border)" onclick="event.stopPropagation();renderPartiesSauvegardees()">Annuler</button>' +
       '<button class="partie-btn-continuer" style="background:rgba(224,85,85,.1);color:var(--red);border-color:var(--red)" onclick="event.stopPropagation();confirmerSuppressionPartie(\''+id+'\')">Supprimer</button>' +
     '</div>';
@@ -1908,24 +1904,24 @@ window.setZoom = function(zoom) {
   renderCatalogue();
   renderPartiesSauvegardees();
 
-  // Header : révélation au scroll vers le haut dans la page jeu
-  let lastScrollJeu = 0;
-  document.getElementById('page-jeu').addEventListener('scroll', function() {
+  // Header : révélé quand on scrolle vers le haut dans la page jeu
+  // (la fenêtre est le conteneur de scroll principal — min-height:100dvh sur #app)
+  let lastScrollY = 0;
+  window.addEventListener('scroll', function() {
     if (state.page !== 'jeu') return;
-    const y = this.scrollTop;
+    const y = window.scrollY;
     const hdr = document.getElementById('header');
-    if (y < lastScrollJeu - 8)       hdr.classList.remove('header-collapsed');
-    else if (y > lastScrollJeu + 8)  hdr.classList.add('header-collapsed');
-    lastScrollJeu = Math.max(0, y);
+    if (y < lastScrollY - 8)       hdr.classList.remove('header-collapsed');
+    else if (y > lastScrollY + 8)  hdr.classList.add('header-collapsed');
+    lastScrollY = Math.max(0, y);
   }, { passive: true });
 
-  // Boutons fiche : scroll vers le haut ou le bas de la fiche
+  // Boutons scroll fiche — la fenêtre scrolle (pas #page-fiche)
   document.getElementById('fiche-btn-top').onclick = function() {
-    document.getElementById('page-fiche').scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   document.getElementById('fiche-btn-bot').onclick = function() {
-    const p = document.getElementById('page-fiche');
-    p.scrollTo({ top: p.scrollHeight, behavior: 'smooth' });
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
 })();
 </script>
