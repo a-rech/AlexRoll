@@ -146,6 +146,20 @@ body::before {
 }
 .fiche-scroll-btn:hover { color:var(--accent); border-color:var(--accent); background:var(--accent-bg); }
 
+/* ─── Bouton révéler header (jeu) ───────────────────────────────── */
+#header-reveal-btn {
+  position:fixed; top:0; left:50%; transform:translateX(-50%);
+  padding:.18rem 1.1rem;
+  background:var(--bg3); border:1px solid var(--border); border-top:none;
+  border-radius:0 0 var(--radius-sm) var(--radius-sm);
+  color:var(--text3); font-size:.7rem; line-height:1.4;
+  cursor:pointer; z-index:99;
+  display:none; align-items:center; justify-content:center;
+  transition:color var(--transition), background var(--transition);
+}
+#header-reveal-btn:hover { color:var(--accent); background:var(--accent-bg); }
+#header-reveal-btn.visible { display:flex; }
+
 /* ─── Pages ──────────────────────────────────────────────────────── */
 .page { display:none; flex:1; }
 .page.active { display:flex; flex-direction:column; }
@@ -472,6 +486,34 @@ body::before {
 .combo-label{font-weight:500;}
 .combo-penalty{color:var(--red);font-size:.8rem;}
 
+/* ─── Mode Manuel ChoupiSteak ────────────────────────────────────── */
+.btn-jouer-sec {
+  display:flex; align-items:center; justify-content:center; gap:.6rem;
+  width:100%; padding:.75rem 1rem; border-radius:var(--radius);
+  background:var(--bg3); color:var(--text2); font-size:.9rem; font-weight:500;
+  font-family:var(--font-display); letter-spacing:.02em; margin-top:.6rem;
+  transition:all var(--transition); border:1px solid var(--border2);
+}
+.btn-jouer-sec:hover { color:var(--text); border-color:var(--accent); background:var(--accent-bg); transform:translateY(-1px); }
+.combo-section { margin-bottom:.75rem; }
+.combo-section-label { font-size:.67rem; text-transform:uppercase; letter-spacing:.1em; color:var(--text3); margin-bottom:.35rem; }
+.combo-grid-6 { display:grid; grid-template-columns:repeat(6,1fr); gap:.3rem; }
+.combo-grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:.4rem; }
+.combo-btn {
+  padding:.42rem .15rem; border-radius:var(--radius-sm);
+  border:1px solid var(--border); background:var(--bg3);
+  color:var(--text2); font-size:.72rem; text-align:center;
+  cursor:pointer; transition:all var(--transition);
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+  font-family:inherit; width:100%;
+}
+.combo-btn:hover { border-color:var(--border2); color:var(--text); background:var(--surface); }
+.combo-btn.sel { border-color:var(--accent); background:var(--accent-bg); color:var(--accent); }
+.combo-btn.sel-pen { border-color:var(--red); background:rgba(224,85,85,.1); color:var(--red); }
+.combo-btn-val { font-weight:700; font-size:.8rem; font-family:var(--font-display); line-height:1.1; }
+.combo-btn-pts { font-size:.68rem; }
+.combo-btn-pen-lbl { font-size:.6rem; color:var(--red); line-height:1; }
+
 /* ─── Modal Thème ────────────────────────────────────────────────── */
 .modal-overlay {
   position:fixed; inset:0; background:rgba(0,0,0,.6);
@@ -512,9 +554,9 @@ body::before {
   border-radius:var(--radius-sm); padding:.6rem 1.2rem;
   font-size:.88rem; color:var(--text); box-shadow:var(--shadow);
   z-index:300; transition:transform .3s cubic-bezier(.4,0,.2,1);
-  white-space:nowrap;
+  white-space:nowrap; visibility:hidden;
 }
-#toast.show { transform:translateX(-50%) translateY(0); }
+#toast.show { transform:translateX(-50%) translateY(0); visibility:visible; }
 
 /* ─── Zoom selector dans modal ───────────────────────────────────── */
 .zoom-grid {
@@ -605,9 +647,13 @@ body::before {
     </div>
     <div id="header-actions">
       <button class="icon-btn" id="btn-regles-jeu" onclick="ouvrirReglesPanel()" title="Règles" aria-label="Voir les règles" style="display:none">📖</button>
+      <button class="icon-btn" id="btn-hide-header" onclick="hideHeader()" title="Masquer l'en-tête" style="display:none">▲</button>
       <button class="icon-btn" onclick="openThemeModal()" title="Thème" aria-label="Changer le thème">🎨</button>
     </div>
   </header>
+
+  <!-- Bouton révéler header en mode partie -->
+  <button id="header-reveal-btn" onclick="revealHeader()">▼</button>
 
   <!-- Page Catalogue -->
   <main class="page active" id="page-catalogue">
@@ -689,6 +735,17 @@ body::before {
 
 <!-- Toast -->
 <div id="toast"></div>
+
+<!-- Popup validation score manuel ChoupiSteak -->
+<div id="popup-manuel" class="modal-overlay">
+  <div class="modal-sheet">
+    <div id="popup-manuel-body"></div>
+    <div style="display:flex;gap:.75rem;margin-top:1.25rem;">
+      <button onclick="fermerPopupManuel()" style="flex:1;padding:.75rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:inherit;font-size:.9rem;cursor:pointer;">← Retour</button>
+      <button onclick="confirmerManuel()" style="flex:1;padding:.75rem;border-radius:var(--radius-sm);background:var(--green);color:#fff;font-weight:600;font-family:inherit;font-size:.9rem;cursor:pointer;">✓ Valider</button>
+    </div>
+  </div>
+</div>
 
 <!-- Boutons scroll fiche : ↑ haut-droite = début, ↓ bas-droite = fin -->
 <button id="fiche-btn-top" class="fiche-scroll-btn"
@@ -1058,6 +1115,8 @@ let state = {
   jeuState: null,
   joueurs: [],
   filtre: 'tous',
+  modeManuel: false,
+  manuelSel: [],
 };
 
 // ─── Navigation ───────────────────────────────────────────────────
@@ -1070,9 +1129,18 @@ window.goTo = function(page, jeuId=null) {
   const btnRegles = document.getElementById('btn-regles-jeu');
   const logo      = document.getElementById('header-logo');
   const header    = document.getElementById('header');
+  const revealBtn = document.getElementById('header-reveal-btn');
+  const hideBtn   = document.getElementById('btn-hide-header');
   // Header : masqué immédiatement en jeu, révélé partout ailleurs
-  if (page === 'jeu') header.classList.add('header-collapsed');
-  else                header.classList.remove('header-collapsed');
+  if (page === 'jeu') {
+    header.classList.add('header-collapsed');
+    revealBtn.classList.add('visible');
+    hideBtn.style.display = 'flex';
+  } else {
+    header.classList.remove('header-collapsed');
+    revealBtn.classList.remove('visible');
+    hideBtn.style.display = 'none';
+  }
   // Boutons scroll fiche
   const d = page === 'fiche' ? 'flex' : 'none';
   document.getElementById('fiche-btn-top').style.display = d;
@@ -1110,7 +1178,7 @@ window.filtrerJeux = function(btn, filtre) {
 
 function renderCatalogue() {
   const grid = document.getElementById('games-grid');
-  const modules = Object.values(MODULES);
+  const modules = ['choupisteak','yams','421','bataille'].map(id=>MODULES[id]).filter(Boolean);
   const filtered = modules.filter(m => state.filtre==='tous' || m.type===state.filtre);
   grid.innerHTML = filtered.map(m => `
     <div class="game-card" onclick="ouvrirFiche('${m.id}')">
@@ -1154,6 +1222,7 @@ function renderFiche(m) {
       <button class="btn-jouer" onclick="ouvrirSetup('${m.id}')">
         ${m.emoji} Lancer une partie
       </button>
+      ${m.id==='choupisteak'?`<button class="btn-jouer-sec" onclick="ouvrirSetupManuel()">🎲 Calculer des scores</button>`:''}
     </div>
   `;
 }
@@ -1163,6 +1232,7 @@ const COULEURS_AVATAR = ['#e8c560','#4ecdc4','#e05580','#7c6cf0','#e87840','#4ca
 const AVATARS_EMOJI = ['🦁','🐯','🦊','🐺','🐱','🐶','🐸','🐷','🐰','🐼','🐨'];
 
 window.ouvrirSetup = function(id) {
+  state.modeManuel = false;
   state.module = loadModule(id);
   state.jeuId = id;
   state.joueurs = [
@@ -1171,6 +1241,18 @@ window.ouvrirSetup = function(id) {
   ];
   renderSetup();
   goTo('setup', id);
+};
+
+window.ouvrirSetupManuel = function() {
+  state.modeManuel = true;
+  state.module = loadModule('choupisteak');
+  state.jeuId = 'choupisteak';
+  state.joueurs = [
+    { id:1, nom:'Joueur 1', avatar: AVATARS_EMOJI[0] },
+    { id:2, nom:'Joueur 2', avatar: AVATARS_EMOJI[1] },
+  ];
+  renderSetup();
+  goTo('setup', 'choupisteak');
 };
 
 function renderSetup() {
@@ -1186,7 +1268,7 @@ function renderSetup() {
     <div class="setup-actions">
       <button class="btn-primary" id="btn-demarrer" onclick="demarrerPartie()"
         ${state.joueurs.length < m.joueursMin ? 'disabled' : ''}>
-        Démarrer la partie →
+        ${state.modeManuel ? '🎲 Calculer les scores →' : 'Démarrer la partie →'}
       </button>
     </div>
   `;
@@ -1235,8 +1317,13 @@ window.demarrerPartie = function() {
   state.jeuState = state.module.init(joueurs);
   state.partieId = 'partie_' + Date.now();
   goTo('jeu', state.jeuId);
-  renderJeu();
-  sauvegarderPartie();
+  if (state.modeManuel) {
+    state.manuelSel = [];
+    renderChoupiSteakManuel();
+  } else {
+    renderJeu();
+    sauvegarderPartie();
+  }
 };
 
 // ─── Moteur de rendu jeu ──────────────────────────────────────────
@@ -1682,6 +1769,219 @@ window.validerCS=function(){
   renderChoupiSteak();
 };
 
+// ─── ChoupiSteak : Mode Manuel (dés réels) ───────────────────────
+const COMBOS_MANUEL = [
+  // Paires
+  {id:'p1',type:'paire',val:1,label:'1',pts:5,pen:0},
+  {id:'p2',type:'paire',val:2,label:'2',pts:10,pen:0},
+  {id:'p3',type:'paire',val:3,label:'3',pts:15,pen:0},
+  {id:'p4',type:'paire',val:4,label:'4',pts:20,pen:0},
+  {id:'p5',type:'paire',val:5,label:'5',pts:25,pen:0},
+  {id:'p6',type:'paire',val:6,label:'6',pts:30,pen:0},
+  // Triples
+  {id:'t1',type:'triple',val:1,label:'1',pts:10,pen:0},
+  {id:'t2',type:'triple',val:2,label:'2',pts:20,pen:0},
+  {id:'t3',type:'triple',val:3,label:'3',pts:30,pen:0},
+  {id:'t4',type:'triple',val:4,label:'4',pts:40,pen:0},
+  {id:'t5',type:'triple',val:5,label:'5',pts:50,pen:0},
+  {id:'t6',type:'triple',val:6,label:'6',pts:60,pen:0},
+  // Carrés
+  {id:'c1',type:'carre',val:1,label:'1',pts:100,pen:100,penLabel:'−100'},
+  {id:'c2',type:'carre',val:2,label:'2',pts:50,pen:50,penLabel:'−50'},
+  {id:'c3',type:'carre',val:3,label:'3',pts:70,pen:30,penLabel:'−30'},
+  {id:'c4',type:'carre',val:4,label:'4',pts:100,pen:0},
+  {id:'c5',type:'carre',val:5,label:'5',pts:125,pen:0},
+  {id:'c6',type:'carre',val:6,label:'6',pts:150,pen:0},
+  // Suites
+  {id:'s4',type:'suite',label:'1‑4',pts:60,pen:0},
+  {id:'s5',type:'suite',label:'2‑5',pts:75,pen:0},
+  {id:'s6',type:'suite',label:'3‑6',pts:90,pen:0},
+];
+
+function renderChoupiSteakManuel() {
+  const s = state.jeuState;
+  if (s.phase === 'fin') { renderFin(); return; }
+  const joueurAct = s.joueurs[s.joueurActuel];
+  const sel = state.manuelSel || [];
+
+  const comboBtn = (c) => {
+    const isSel = !!sel.find(sc => sc.id === c.id);
+    const hasPen = c.pen > 0;
+    const cls = isSel ? (hasPen ? ' sel-pen' : ' sel') : '';
+    return `<button class="combo-btn${cls}" onclick="toggleManuelCombo('${c.id}')">
+      <span class="combo-btn-val">${c.label}</span>
+      <span class="combo-btn-pts">${c.pts > 0 ? '+' : ''}${c.pts}</span>
+      ${hasPen ? `<span class="combo-btn-pen-lbl">${c.penLabel}/adv</span>` : ''}
+    </button>`;
+  };
+
+  const totalPts = sel.reduce((sum, c) => sum + c.pts, 0);
+  const totalPen = sel.reduce((sum, c) => sum + (c.pen || 0), 0);
+  const btnLabel = sel.length === 0 ? '→ 0 pt (rien)' : totalPts > 0 ? `→ +${totalPts} pt${totalPts > 1 ? 's' : ''}` : `→ ${totalPts} pt`;
+
+  document.getElementById('jeu-content').innerHTML = `
+    <div class="jeu-container">
+      <div class="joueur-actuel-bar">
+        <div class="joueur-actuel-avatar" style="background:${joueurAct.couleur}">${joueurAct.avatar}</div>
+        <div class="joueur-actuel-info">
+          <div class="joueur-actuel-label">Saisie pour</div>
+          <div class="joueur-actuel-nom">${joueurAct.nom}</div>
+        </div>
+        <div class="tour-info">${s.mancheFinale ? '⚠️ Dernier tour !' : `${joueurAct.score} pts`}</div>
+      </div>
+
+      <div class="des-zone">
+        <div class="des-titre">📊 Scores <span style="font-size:.78em;color:var(--text3);font-family:var(--font-body);text-transform:none;letter-spacing:0">· objectif ${s.seuil} pts</span></div>
+        <div class="scores-cs-grid">
+          ${s.joueurs.map((j,i) => {
+            const pct = Math.max(0, Math.min(100, Math.round(j.score / s.seuil * 100)));
+            return `<div class="score-cs-row${i === s.joueurActuel ? ' actif' : ''}">
+              <div class="score-cs-joueur">${j.avatar}<span>${j.nom}</span></div>
+              <div class="score-cs-bar-wrap"><div class="score-cs-bar" style="width:${pct}%;background:${j.couleur}"></div></div>
+              <div class="score-cs-val" style="color:${j.score < 0 ? 'var(--red)' : j.couleur}">${j.score}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="des-zone">
+        <div class="des-titre">🎲 Combinaison <span style="font-size:.78em;color:var(--text3);font-family:var(--font-body);text-transform:none;letter-spacing:0">· 2 paires possibles</span></div>
+
+        <div class="combo-section">
+          <div class="combo-section-label">Paires</div>
+          <div class="combo-grid-6">${COMBOS_MANUEL.filter(c=>c.type==='paire').map(comboBtn).join('')}</div>
+        </div>
+        <div class="combo-section">
+          <div class="combo-section-label">Triples</div>
+          <div class="combo-grid-6">${COMBOS_MANUEL.filter(c=>c.type==='triple').map(comboBtn).join('')}</div>
+        </div>
+        <div class="combo-section">
+          <div class="combo-section-label">Carrés ⚠ pén./adversaire</div>
+          <div class="combo-grid-6">${COMBOS_MANUEL.filter(c=>c.type==='carre').map(comboBtn).join('')}</div>
+        </div>
+        <div class="combo-section">
+          <div class="combo-section-label">Suites</div>
+          <div class="combo-grid-3">${COMBOS_MANUEL.filter(c=>c.type==='suite').map(comboBtn).join('')}</div>
+        </div>
+
+        <button class="btn-lancer" style="background:var(--green);color:#fff;margin-top:.5rem" onclick="ouvrirPopupManuel()">
+          ✓ Valider ${btnLabel}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+window.toggleManuelCombo = function(id) {
+  const combo = COMBOS_MANUEL.find(c => c.id === id);
+  if (!combo) return;
+  const sel = state.manuelSel || [];
+  // Toggle off si déjà sélectionné
+  if (sel.find(c => c.id === id)) {
+    state.manuelSel = sel.filter(c => c.id !== id);
+    renderChoupiSteakManuel();
+    return;
+  }
+  // Deux paires peuvent se cumuler
+  if (combo.type === 'paire' && sel.length === 1 && sel[0].type === 'paire') {
+    state.manuelSel = [...sel, combo];
+  } else {
+    state.manuelSel = [combo];
+  }
+  renderChoupiSteakManuel();
+};
+
+window.ouvrirPopupManuel = function() {
+  const s = state.jeuState;
+  const sel = state.manuelSel || [];
+  const joueurAct = s.joueurs[s.joueurActuel];
+  const totalPts = sel.reduce((sum, c) => sum + c.pts, 0);
+  const totalPen = sel.reduce((sum, c) => sum + (c.pen || 0), 0);
+
+  const comboDesc = sel.length === 0
+    ? 'Aucune combinaison'
+    : sel.map(c => {
+        if (c.type === 'paire')  return `Paire de ${c.val} (+${c.pts} pts)`;
+        if (c.type === 'triple') return `Triple de ${c.val} (+${c.pts} pts)`;
+        if (c.type === 'carre')  return `Carré de ${c.val} (+${c.pts} pts${c.pen > 0 ? `, ${c.penLabel} pts/adv` : ''})`;
+        return `Suite ${c.label} (+${c.pts} pts)`;
+      }).join(' + ');
+
+  const isCarreUn = !!sel.find(c => c.id === 'c1');
+
+  document.getElementById('popup-manuel-body').innerHTML = `
+    <div class="modal-title">${joueurAct.avatar} ${joueurAct.nom}</div>
+    <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:.85rem 1rem;margin-bottom:1rem;">
+      <div style="font-size:.75rem;color:var(--text3);margin-bottom:.35rem">Combinaison</div>
+      <div style="font-size:.88rem;color:var(--text)">${comboDesc}</div>
+    </div>
+    <div style="display:flex;gap:.75rem;align-items:center;${totalPen > 0 ? 'margin-bottom:.75rem' : ''}">
+      <div style="flex:1">
+        <div style="font-size:.72rem;color:var(--text3);margin-bottom:.2rem">Score</div>
+        <div style="font-size:1.6rem;font-weight:700;font-family:var(--font-display);color:${totalPts > 0 ? 'var(--green)' : 'var(--text2)'}">
+          ${totalPts > 0 ? '+' : ''}${totalPts} pt${Math.abs(totalPts) > 1 ? 's' : ''}
+        </div>
+      </div>
+      ${totalPen > 0 ? `<div style="flex:1;text-align:right">
+        <div style="font-size:.72rem;color:var(--text3);margin-bottom:.2rem">Pénalité / adversaire</div>
+        <div style="font-size:1.2rem;font-weight:700;font-family:var(--font-display);color:var(--red)">−${totalPen} pts</div>
+      </div>` : ''}
+    </div>
+    ${isCarreUn ? `<div style="background:var(--accent-bg);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:.6rem .85rem;font-size:.82rem;color:var(--accent)">⚡ Carré de 1 = victoire instantanée si réalisé en 1 seul lancer !</div>` : ''}
+  `;
+  document.getElementById('popup-manuel').classList.add('open');
+};
+
+window.fermerPopupManuel = function() {
+  document.getElementById('popup-manuel').classList.remove('open');
+};
+
+window.confirmerManuel = function() {
+  const s = state.jeuState;
+  const sel = state.manuelSel || [];
+  const totalPts = sel.reduce((sum, c) => sum + c.pts, 0);
+  const totalPen = sel.reduce((sum, c) => sum + (c.pen || 0), 0);
+
+  const joueur = s.joueurs[s.joueurActuel];
+  joueur.score += totalPts;
+  if (totalPen > 0) s.joueurs.forEach((j,i) => { if (i !== s.joueurActuel) j.score -= totalPen; });
+
+  // Déclenchement manche finale
+  if (joueur.score >= s.seuil && !s.mancheFinale) {
+    s.mancheFinale = true;
+    s.joueurDeclencheur = s.joueurActuel;
+  }
+
+  const nextIdx = (s.joueurActuel + 1) % s.joueurs.length;
+
+  // Fin de partie ?
+  if (s.mancheFinale && nextIdx === s.joueurDeclencheur) {
+    const au_seuil = s.joueurs.filter(j => j.score >= s.seuil);
+    if (au_seuil.length === 0) {
+      s.mancheFinale = false; s.joueurDeclencheur = -1;
+    } else {
+      s.phase = 'fin';
+      s.gagnant = au_seuil.reduce((max,j) => j.score > max.score ? j : max, au_seuil[0]);
+      s.joueurActuel = nextIdx;
+      state.jeuState = {...s};
+      fermerPopupManuel();
+      renderFin();
+      return;
+    }
+  }
+
+  s.joueurActuel = nextIdx;
+  state.jeuState = {...s};
+  state.manuelSel = [];
+
+  let msg = totalPts > 0 ? `+${totalPts} pts` : '0 pt';
+  if (totalPen > 0) msg += ` · −${totalPen}/adversaire`;
+  toast(msg, 2000);
+
+  fermerPopupManuel();
+  renderChoupiSteakManuel();
+};
+
 // ─── Fin de partie ────────────────────────────────────────────────
 function renderFin() {
   const s = state.jeuState;
@@ -1904,17 +2204,14 @@ window.setZoom = function(zoom) {
   renderCatalogue();
   renderPartiesSauvegardees();
 
-  // Header : révélé quand on scrolle vers le haut dans la page jeu
-  // (la fenêtre est le conteneur de scroll principal — min-height:100dvh sur #app)
-  let lastScrollY = 0;
-  window.addEventListener('scroll', function() {
-    if (state.page !== 'jeu') return;
-    const y = window.scrollY;
-    const hdr = document.getElementById('header');
-    if (y < lastScrollY - 8)       hdr.classList.remove('header-collapsed');
-    else if (y > lastScrollY + 8)  hdr.classList.add('header-collapsed');
-    lastScrollY = Math.max(0, y);
-  }, { passive: true });
+  window.revealHeader = function() {
+    document.getElementById('header').classList.remove('header-collapsed');
+    document.getElementById('header-reveal-btn').classList.remove('visible');
+  };
+  window.hideHeader = function() {
+    document.getElementById('header').classList.add('header-collapsed');
+    document.getElementById('header-reveal-btn').classList.add('visible');
+  };
 
   // Boutons scroll fiche — la fenêtre scrolle (pas #page-fiche)
   document.getElementById('fiche-btn-top').onclick = function() {
